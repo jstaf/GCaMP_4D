@@ -12,6 +12,14 @@ data = bfopen(uigetfile({'*', 'All files'}, ...
 disp(['There are ', num2str(size(data, 1)), ' confocal stacks in this file']);
 % which stack number do we want?
 
+% get the names of each stack
+stackNames = cell(4, 1);
+for i = 1:size(data, 1)
+    dat = data{i ,1};
+    label = strsplit(dat{1, 2}, ';');
+    stackNames{i} = label{2};
+end
+
 whichStack = 1;
 
 % dat2= data{:, 1};
@@ -82,9 +90,11 @@ end
 %% try making a heatmap as dF/F using the max projections
 
 % first number is the baseline you are comparing against 
-numbers = [3, 5]; % have a way of picking which things to compare
+numbers = [2, 5]; % have a way of picking which things to compare
 
 newProject = stabilizePair(maxProject(:, :, numbers(2)), maxProject(:, :, numbers(1)));
+
+
 
 image2 = imgaussfilt(maxProject(:, :, numbers(2)), 2);
 image1 = imgaussfilt(newProject, 2);
