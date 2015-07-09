@@ -11,7 +11,7 @@ data = bfopen(uigetfile({'*', 'All files'}, ...
 
 disp(['There are ', num2str(size(data, 1)), ' confocal stacks in this file']);
 % which stack number do we want?
-whichStack = 2;
+whichStack = 1;
 
 % each row is a confocal stack
 
@@ -69,27 +69,23 @@ sz = size(confocalStack);
 maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
 % go through confocalStack and make a max projection for each
 for stack = 1:timesThruStack
-    % make max projection
-    project = max(confocalStack(:, :, :, stack), [], 3);
-    
-    maxProject(:, :, stack) = project;
+    % make max projection    
+    maxProject(:, :, stack) = max(confocalStack(:, :, :, stack), [], 3);
 end
-
-%% show all max projections
-
-% figure;
-% hold on;
-% for i = 1:size(maxProject, 3)
-%     subplot(4, 4,i), subimage(maxProject(:,:, i));
-% end
-% hold off;
 
 %% try making a heatmap as dF/F using the max projections
 
 % first number is the baseline you are comparing against 
 numbers = [3, 5]; % have a way of picking which things to compare
 
-dff = double(maxProject(:, :, numbers(2))) ./ double(maxProject(:, :, numbers(1)));
+
+newProject = stabilizePair(maxProject(:, :, numbers(2)), maxProject(:, :, numbers(1)));
+
+figure; imshowpair(maxProject(:, :, numbers(1)), maxProject(:, :, numbers(2)), 'ColorChannels','red-cyan');
+figure; imshowpair(newProject, maxProject(:, :, numbers(2)), 'ColorChannels','red-cyan');
+
+
+dff = double(maxProject(:, :, numbers(2))) ./ double(newProject);
 dff = dff * 100; %change to percent
 %dff = medfilt2(dff);
 
