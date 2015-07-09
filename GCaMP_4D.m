@@ -195,56 +195,61 @@ function stackSelector_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns stackSelector contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from stackSelector
 
-%% open and reformat data
-
-% grab the stack we want from the gui
-whichStack = get(hObject,'Value');
-series = handles.data{whichStack, 1};
-
-% take first element of metadata and figure out Z and T
-stackData = strsplit(series{1, 2}, ';');
-stackSize = strsplit(stackData{4}, '/');
-% number of times we went through the stack
-stackSize = str2double(stackSize{2}); 
-
-timesThruStack = strsplit(stackData{5}, '/');
-timesThruStack = str2double(timesThruStack{2}); 
-
-% warn if final stack is incomplete
-if (timesThruStack ~= (size(series, 1) / stackSize))
-    warning('Warning, calculated number of stacks DOES NOT MATCH metadata');
-end
-
-% whats the size of the first image plane
-resolution = size(series{1, 1});
-
-% preallocate memory to make things faster
-confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
-% fill in confocalStack with our data
-for planeNum = 1:size(series, 1) 
-    % which image our we at in a single pass
-    stackNum = mod(planeNum, stackSize) + 1; 
+contents = cellstr(get(hObject,'String'));
+stackFail = strcmp('Needs file...', contents{get(hObject,'Value')});
+if (~stackFail)
+    % open and reformat data
     
-    % what pass through our sample are we at
-    passNum = ceil(planeNum / stackSize); 
+    % grab the stack we want from the gui
+    whichStack = get(hObject,'Value');
+    series = handles.data{whichStack, 1};
     
-    % put the current plane where its supposed to go
-    confocalStack(:, :, stackNum, passNum) = series{planeNum, 1};
+    % take first element of metadata and figure out Z and T
+    stackData = strsplit(series{1, 2}, ';');
+    stackSize = strsplit(stackData{4}, '/');
+    % number of times we went through the stack
+    stackSize = str2double(stackSize{2});
+    
+    timesThruStack = strsplit(stackData{5}, '/');
+    timesThruStack = str2double(timesThruStack{2});
+    
+    % warn if final stack is incomplete
+    if (timesThruStack ~= (size(series, 1) / stackSize))
+        warning('Warning, calculated number of stacks DOES NOT MATCH metadata');
+    end
+    
+    % whats the size of the first image plane
+    resolution = size(series{1, 1});
+    
+    % preallocate memory to make things faster
+    confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
+    % fill in confocalStack with our data
+    for planeNum = 1:size(series, 1)
+        % which image our we at in a single pass
+        stackNum = mod(planeNum, stackSize) + 1;
+        
+        % what pass through our sample are we at
+        passNum = ceil(planeNum / stackSize);
+        
+        % put the current plane where its supposed to go
+        confocalStack(:, :, stackNum, passNum) = series{planeNum, 1};
+    end
+    
+    % make a max projection of every pass through
+    sz = size(confocalStack);
+    handles.maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
+    % go through confocalStack and make a max projection for each
+    for stack = 1:timesThruStack
+        % make max projection
+        handles.maxProject(:, :, stack) = max(confocalStack(:, :, :, stack), [], 3);
+    end
+    
+    % update GUI to use new values
+    set(handles.BGselect, 'String', 1:timesThruStack);
+    set(handles.FGselect, 'String', 1:timesThruStack);
+    guidata(hObject, handles);
 end
 
-%% make a max projection of every pass through
-
-sz = size(confocalStack);
-handles.maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
-% go through confocalStack and make a max projection for each
-for stack = 1:timesThruStack
-    % make max projection    
-    handles.maxProject(:, :, stack) = max(confocalStack(:, :, :, stack), [], 3);
-end
-
-% update GUI to use new values
-set(handles.BGselect, 'String', 1:timesThruStack);
-set(handles.FGselect, 'String', 1:timesThruStack);
 
 % --- Executes during object creation, after setting all properties.
 function stackSelector_CreateFcn(hObject, eventdata, handles)
@@ -320,5 +325,19 @@ contents = cellstr(get(handles.BGselect,'String'));
 BGfail = strcmp(defaults, contents{BGval});
 
 if (~FGfail && ~BGfail)
-    disp(['BG: ', num2str(BGval), ', FG: ', num2str(FGval)]);
+    %disp(['BG: ', num2str(BGval), ', FG: ', num2str(FGval)]); % testline
+    
+    FG = handles.maxProject(:, :, FGval);
+    BG = handles.maxProject(:, :, BGval);
+    
+    FG = stabilizePair(BG, FG);
+    handles.dff = subtractImg(FG, BG);
+    
+    percentile = quantile(handles.dff(:), 0.99);
+    percentileLO = quantile(handles.dff(:), 0.01);
+    imshow(handles.dff, [percentileLO, percentile]); % maximum is 99th percentile
+    % create colorbar and its limits
+    colormap(jet);
+    colorBAR = colorbar('EastOutside');
+    colorBAR.Label.String = 'Change in Fluorescence (dF/F)';
 end
