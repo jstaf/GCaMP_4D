@@ -12,13 +12,12 @@ data = bfopen(uigetfile({'*', 'All files'}, ...
 disp(['There are ', num2str(size(data, 1)), ' confocal stacks in this file']);
 % which stack number do we want?
 
-size(data)
-% labels = data{:, 1};
-% unique(labels(:, 2))
-% popupSelect(data)
+whichStack = 1;
 
-%%
-whichStack = 3;
+% dat2= data{:, 1};
+% popupSelect(data{1, :})
+% 
+% whichStack = wait(popupSelect(data(1)));
 
 % each row is a confocal stack
 
@@ -83,28 +82,27 @@ end
 %% try making a heatmap as dF/F using the max projections
 
 % first number is the baseline you are comparing against 
-numbers = [3, 8]; % have a way of picking which things to compare
+numbers = [3, 5]; % have a way of picking which things to compare
 
 newProject = stabilizePair(maxProject(:, :, numbers(2)), maxProject(:, :, numbers(1)));
 
-% debugging... before and after stabilization
-%figure; imshowpair(maxProject(:, :, numbers(1)), maxProject(:, :, numbers(2)), 'ColorChannels','red-cyan');
-%figure; imshowpair(newProject, maxProject(:, :, numbers(2)), 'ColorChannels','red-cyan');
-
 image2 = imgaussfilt(maxProject(:, :, numbers(2)), 2);
 image1 = imgaussfilt(newProject, 2);
-dff = double(image2) ./ double(image1);
-%dff = double(maxProject(:, :, numbers(2))) ./ double(newProject);
-dff = dff * 100; %change to percent
+ 
+% image2 = maxProject(:, :, numbers(2));
+% image1 = newProject;
 
+dff = double(image2) ./ double(image1);
+
+dff = dff * 100; %change to percent
 % fix division by 0 artifacts
 dff(isnan(dff(:))) = 0;
 dff(isinf(dff(:))) = 0;
 
-%dff = imgaussfilt(dff, 2);
-
 handle = figure('Name', 'dF/F');
-imshow(dff, [0, 300]); %TODO automatically set
+percentile = quantile(dff(:), 0.99);
+percentileLO = quantile(dff(:), 0.01);
+imshow(dff, [percentileLO, percentile]); % maximum is 99th percentile
 % create colorbar and its limits
 colormap(jet);
 colorBAR = colorbar('EastOutside');
