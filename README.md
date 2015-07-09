@@ -1,6 +1,8 @@
 # GCaMP_4D
 An algorithm to parse and analyze 4-dimensional microscopy data
 
+![Imgur](http://i.imgur.com/SYzedjh.png)
+
 ## Installation
 
 Either download this package or clone this repository using git (recommended). Run GCaMP_4D.m or GCaMP_4D.fig in MATLAB. It's that easy.
