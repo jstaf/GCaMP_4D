@@ -22,7 +22,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 09-Jul-2015 11:58:14
+% Last Modified by GUIDE v2.5 09-Jul-2015 13:12:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -273,7 +273,7 @@ function BGselect_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns BGselect contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from BGselect
 
-update(handles);
+update(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -298,7 +298,7 @@ function FGselect_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns FGselect contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from FGselect
 
-update(handles);
+update(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function FGselect_CreateFcn(hObject, eventdata, handles)
@@ -312,7 +312,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function update(handles)
+% update the delta frame
+function update(hObject, handles)
 
 BGval = get(handles.BGselect,'Value');
 FGval = get(handles.FGselect, 'Value');
@@ -333,11 +334,31 @@ if (~FGfail && ~BGfail)
     FG = stabilizePair(BG, FG);
     handles.dff = subtractImg(FG, BG);
     
-    percentile = quantile(handles.dff(:), 0.99);
-    percentileLO = quantile(handles.dff(:), 0.01);
-    imshow(handles.dff, [percentileLO, percentile]); % maximum is 99th percentile
-    % create colorbar and its limits
-    colormap(jet);
-    colorBAR = colorbar('EastOutside');
-    colorBAR.Label.String = 'Change in Fluorescence (dF/F)';
+    % update and display data
+    guidata(hObject, handles);
+    display(handles);
 end
+
+% displays the data
+function display(handles)
+toDisplay = handles.dff;
+percentile = quantile(toDisplay(:), 0.99);
+percentileLO = quantile(toDisplay(:), 0.01);
+imshow(toDisplay, [percentileLO, percentile]); % maximum is 99th percentile
+% create colorbar and its limits
+colormap(jet);
+colorBAR = colorbar('EastOutside');
+colorBAR.Label.String = 'Change in Fluorescence (dF/F)';
+
+
+% --- Executes on button press in exportDisplay.
+function exportDisplay_Callback(hObject, eventdata, handles)
+% hObject    handle to exportDisplay (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+figure('Name', 'dF/F');
+display(handles)
+
+handles.output = handles.dff;
+guidata(hObject, handles);
