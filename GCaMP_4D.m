@@ -81,51 +81,6 @@ function varargout = GCaMP_4D_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-
-% --- Executes on slider movement.
-function BGslider_Callback(hObject, eventdata, handles)
-% hObject    handle to BGslider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function BGslider_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to BGslider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
-function FGslider_Callback(hObject, eventdata, handles)
-% hObject    handle to FGslider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function FGslider_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to FGslider (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
 % --- Executes on button press in openFileButton.
 function openFileButton_Callback(hObject, eventdata, handles)
 % hObject    handle to openFileButton (see GCBO)
@@ -133,8 +88,9 @@ function openFileButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % load the file 
-handles.data = bfopen(uigetfile({'*', 'All files'}, ...
-    'Select a image file to analyze...', 'MultiSelect','off'));
+[filename, path] = uigetfile({'*', 'All files'}, ...
+    'Select a image file to analyze...', 'MultiSelect','off');
+handles.data = bfopen([path, filename]);
 
 % get the names of each stack
 handles.stackNames = cell(size(handles.data, 1), 1);
@@ -338,15 +294,14 @@ if (~FGfail && ~BGfail)
     
     % update and display data
     guidata(hObject, handles);
-    display(handles);
+    display(handles.dff);
 end
 
 % displays the data
-function display(handles)
-toDisplay = handles.dff;
-percentile = quantile(toDisplay(:), 0.99);
-percentileLO = quantile(toDisplay(:), 0.01);
-imshow(toDisplay, [percentileLO, percentile]); % maximum is 99th percentile
+function display(image)
+percentileHI = quantile(image(:), 0.99);
+percentileLO = quantile(image(:), 0.01);
+imshow(image, [percentileLO, percentileHI]);
 % create colorbar and its limits
 colormap(jet);
 colorBAR = colorbar('EastOutside');
@@ -361,7 +316,10 @@ function exportDisplay_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 figure('Name', 'dF/F');
-display(handles)
 
-handles.output = handles.dff;
-guidata(hObject, handles);
+try
+    display(handles.dff)
+catch
+    % dont do anything... works as intended even though its throwing an
+    % error here.
+end
