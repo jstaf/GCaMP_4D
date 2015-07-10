@@ -22,7 +22,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 09-Jul-2015 13:12:54
+% Last Modified by GUIDE v2.5 09-Jul-2015 18:45:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
