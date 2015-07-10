@@ -1,5 +1,8 @@
 function varargout = GCaMP_4D(varargin)
 % GCAMP_4D MATLAB code for GCaMP_4D.fig
+%       
+%       created by Jeff Stafford
+%
 %      GCAMP_4D, by itself, creates a new GCAMP_4D or raises the existing
 %      singleton*.
 %

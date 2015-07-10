@@ -13,7 +13,7 @@ When a foreground and background pass are compared, the images are first "stabil
 
 Either download this package or clone this repository using git (recommended). Run GCaMP_4D.m or GCaMP_4D.fig in MATLAB. It's that easy.
 
-## Use
+## How to use
 
 To analyze a 4D confocal video
 + Open a file with the `Open file` button.
@@ -22,3 +22,9 @@ To analyze a 4D confocal video
 + Select a background pass
 
 The display should automatically update as you change the `Foreground Pass` or `Background Pass` dialogs.
+
+### Tips 
+
++ If an image appears misaligned (there are two identically shaped features in close proximity, but one is blue and one is red), it probably is misaligned. Just reselect the passes you are analyzing and it will attempt to re-align things. This fixes bad alignments most of the time.
++ If you want to export an image (either for comparison to another image or to just save), hit the `Export Display` button. This creates an identical copy of what you're seeing in a new window all by itself. This has the added benefit of if you make changes to the image before you export it, it won't mess up the rest of the application (the application is a MATLAB figure, and can be messed up if you start trying to change axes/colormaps there).
++ To alter the colormap, right click on it and select `Interactive Colormap Shift`. You can now change the colormap by clicking and dragging. You can alternatively select an entirely different colormap with `Standard Colormaps`.
