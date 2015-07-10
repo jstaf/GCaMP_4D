@@ -27,6 +27,8 @@ To analyze a 4D confocal video
 
 The display should automatically update as you change the `Foreground Pass` or `Background Pass` dialogs.
 
+If you want to view an individual pass, uncheck the box next to the background pass. Only the foreground pass will be displayed. You can toggle between modes with that checkbox.
+
 ### Tips 
 
 + If an image appears misaligned (there are two identically shaped features in close proximity, but one is blue and one is red), it probably *is* misaligned. Just reselect the passes you are analyzing and it will attempt to re-align things. This fixes bad alignments most of the time.
