@@ -247,6 +247,8 @@ if (~stackFail)
     % update GUI to use new values
     set(handles.BGselect, 'String', 1:timesThruStack);
     set(handles.FGselect, 'String', 1:timesThruStack);
+    
+    update(hObject, handles);
     guidata(hObject, handles);
 end
 
@@ -331,7 +333,7 @@ if (~FGfail && ~BGfail)
     FG = handles.maxProject(:, :, FGval);
     BG = handles.maxProject(:, :, BGval);
     
-    FG = stabilizePair(BG, FG);
+    BG = stabilizePair(FG, BG);
     handles.dff = subtractImg(FG, BG);
     
     % update and display data
@@ -349,6 +351,7 @@ imshow(toDisplay, [percentileLO, percentile]); % maximum is 99th percentile
 colormap(jet);
 colorBAR = colorbar('EastOutside');
 colorBAR.Label.String = 'Change in Fluorescence (dF/F)';
+drawnow;
 
 
 % --- Executes on button press in exportDisplay.
