@@ -1,7 +1,7 @@
 # GCaMP_4D
 An algorithm to parse and analyze 4-dimensional microscopy data
 
-![Imgur](http://i.imgur.com/SYzedjh.png)
+![Imgur](http://i.imgur.com/Qh1YA8I.png)
 
 ## Installation
 
