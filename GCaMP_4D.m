@@ -305,6 +305,7 @@ imshow(image, [percentileLO, percentileHI]);
 % create colorbar and its limits
 colormap(jet);
 colorBAR = colorbar('EastOutside');
+warning('off','MATLAB:warn_r14_stucture_assignment');
 colorBAR.Label.String = 'Change in Fluorescence (dF/F)';
 drawnow;
 
