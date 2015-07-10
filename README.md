@@ -9,10 +9,6 @@ The expected input is a confocal file containing a series of passes through a sp
 
 When a foreground and background pass are compared, the images are first "stabilized" using [the SURF algorithm](http://www.mathworks.com/help/vision/examples/video-stabilization-using-point-feature-matching.html). This ensures that the features in each pass actually line up, even though the specimen may have moved. Once stabilization is complete, the difference between the images is computed and displayed back to the user.
 
-The basic forumula used to compute the difference between images is: 
-
-**delta_image = (foreground ./ background) * 100 - 100**
-
 ## Installation
 
 Either download this package or clone this repository using git (recommended). Run GCaMP_4D.m or GCaMP_4D.fig in MATLAB. It's that easy.
