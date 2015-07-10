@@ -25,7 +25,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 09-Jul-2015 18:45:54
+% Last Modified by GUIDE v2.5 09-Jul-2015 21:52:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,19 +59,14 @@ function GCaMP_4D_OpeningFcn(hObject, eventdata, handles, varargin)
 % is)
 addpath('./bfmatlab');
 
-% Set pass selection values to impossible value (so you can check if the
-% user's done anything yet).
-% set(handles.BGselect, 'Value', 9999);
-% set(handles.FGselect, 'Value', 9999);
+% make sure image subtraction is turned on
+handles.backgroundOn = 1;
 
 % Choose default command line output for GCaMP_4D
 handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
-
-% UIWAIT makes GCaMP_4D wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -287,29 +282,38 @@ contents = cellstr(get(handles.BGselect,'String'));
 BGfail = strcmp(defaults, contents{BGval});
 
 if (~FGfail && ~BGfail)
-    %disp(['BG: ', num2str(BGval), ', FG: ', num2str(FGval)]); % testline
     
     FG = handles.maxProject(:, :, FGval);
-    BG = handles.maxProject(:, :, BGval);
-    
-    BG = stabilizePair(FG, BG);
-    handles.dff = subtractImg(FG, BG);
-    
+    if (handles.backgroundOn)
+        BG = handles.maxProject(:, :, BGval);
+        BG = stabilizePair(FG, BG);
+        handles.dff = subtractImg(FG, BG);
+    else
+        handles.dff = FG;
+    end
     % update and display data
     guidata(hObject, handles);
-    display(handles.dff);
+    display(handles.dff, handles);
 end
 
 % displays the data
-function display(image)
+function display(image, handles)
+
 percentileHI = quantile(image(:), 0.99);
 percentileLO = quantile(image(:), 0.01);
 imshow(image, [percentileLO, percentileHI]);
+
 % create colorbar and its limits
-colormap(jet);
-colorBAR = colorbar('EastOutside');
 warning('off','MATLAB:warn_r14_stucture_assignment');
-colorBAR.Label.String = 'Change in Fluorescence (dF/F)';
+if (handles.backgroundOn)
+    colormap(jet);
+    colorBAR = colorbar('EastOutside');
+    colorBAR.Label.String = 'Change in fluorescence (dF/F)';
+else
+    colormap(gray);
+    colorBAR = colorbar('EastOutside');
+    colorBAR.Label.String = 'Raw fluorsecence value';
+end
 drawnow;
 
 
@@ -322,8 +326,20 @@ function exportDisplay_Callback(hObject, eventdata, handles)
 figure('Name', 'dF/F');
 
 try
-    display(handles.dff)
+    display(handles.dff, handles)
 catch
     % dont do anything... works as intended even though its throwing an
     % error here.
 end
+
+
+% --- Executes on button press in enableBackground.
+function enableBackground_Callback(hObject, eventdata, handles)
+% hObject    handle to enableBackground (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of enableBackground
+handles.backgroundOn = get(hObject,'Value');
+guidata(hObject, handles);
+update(hObject, handles);
