@@ -100,6 +100,7 @@ end
 
 % update stackselector values
 set(handles.stackSelector, 'String', handles.stackNames);
+set(handles.stackSelector, 'Value', 1);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -160,11 +161,11 @@ if (~stackFail)
     
     % take first element of metadata and figure out Z and T
     stackData = strsplit(series{1, 2}, ';');
-    stackSize = strsplit(stackData{4}, '/');
+    stackSize = strsplit(stackData{end-1}, '/');
     % number of times we went through the stack
     stackSize = str2double(stackSize{2});
     
-    timesThruStack = strsplit(stackData{5}, '/');
+    timesThruStack = strsplit(stackData{end}, '/');
     timesThruStack = str2double(timesThruStack{2});
     
     % warn if final stack is incomplete

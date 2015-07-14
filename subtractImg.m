@@ -5,7 +5,7 @@ function [deltaIMG] = subtractImg(foreground, background)
 %background = imgaussfilt(background, 2);
 
 % for compatibility with 2013b
-gauss = fspecial('gaussian', 6, 2);
+gauss = fspecial('gaussian', 7, 2);
 foreground = imfilter(foreground, gauss);
 background = imfilter(background, gauss);
 
