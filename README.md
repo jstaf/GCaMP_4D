@@ -2,6 +2,7 @@
 An algorithm to parse and analyze 4-dimensional microscopy data
 
 ![Imgur](http://i.imgur.com/aVy7xWW.png)
+A pair of neuronal projections fluorescing in response to a stimuli in a 3D viewfield.
 
 ## How it works
 
@@ -30,6 +31,7 @@ The display should automatically update as you change the `Foreground Pass` or `
 If you want to view an individual pass, uncheck the box next to the background pass. Only the foreground pass will be displayed. You can toggle between modes with that checkbox.
 
 ![Imgur](http://i.imgur.com/ZoiiUio.png)
+Raw, unfiltered "single-pass" fluorescence.
 
 ### Tips 
 
