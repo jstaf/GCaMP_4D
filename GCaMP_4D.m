@@ -1,7 +1,7 @@
 function varargout = GCaMP_4D(varargin)
 % GCAMP_4D MATLAB code for GCaMP_4D.fig
 %       
-%       created by Jeff Stafford
+%      Created by Jeff Stafford
 %
 %      GCAMP_4D, by itself, creates a new GCAMP_4D or raises the existing
 %      singleton*.
@@ -98,13 +98,13 @@ for i = 1:size(handles.data, 1)
     handles.stackNames{i} = label{2};
 end
 
-% update stackselector values
+% update stackselector values and open first stack
 set(handles.stackSelector, 'String', handles.stackNames);
 set(handles.stackSelector, 'Value', 1);
-
-% Update handles structure
+set(handles.BGselect, 'Value', 1);
+set(handles.FGselect, 'Value', 1);
 guidata(hObject, handles);
-
+selectStack(hObject, handles);
 
 % --- Executes on key press with focus on openFileButton and none of its controls.
 function openFileButton_KeyPressFcn(hObject, eventdata, handles)
@@ -115,32 +115,6 @@ function openFileButton_KeyPressFcn(hObject, eventdata, handles)
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
 
-
-% --- Executes on selection change in stackList.
-function stackList_Callback(hObject, eventdata, handles)
-% hObject    handle to stackList (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns stackList contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from stackList
-
-
-
-
-% --- Executes during object creation, after setting all properties.
-function stackList_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to stackList (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: listbox controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
 % --- Executes on selection change in stackSelector.
 function stackSelector_Callback(hObject, eventdata, handles)
 % hObject    handle to stackSelector (see GCBO)
@@ -149,6 +123,10 @@ function stackSelector_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns stackSelector contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from stackSelector
+selectStack(hObject, handles);
+
+% created so that stack selection can be called programmatically
+function selectStack(hObject, handles)
 
 contents = cellstr(get(hObject,'String'));
 stackFail = strcmp('Needs file...', contents{get(hObject,'Value')});
@@ -203,8 +181,8 @@ if (~stackFail)
     set(handles.BGselect, 'String', 1:timesThruStack);
     set(handles.FGselect, 'String', 1:timesThruStack);
     
-    update(hObject, handles);
     guidata(hObject, handles);
+    update(hObject, handles);
 end
 
 
