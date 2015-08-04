@@ -9,10 +9,6 @@ gauss = fspecial('gaussian', 7, 2);
 foreground = imfilter(foreground, gauss);
 background = imfilter(background, gauss);
 
-% old formula
-% deltaIMG = double(foreground) ./ double(background);
-% deltaIMG = (deltaIMG * 100) - 100; %change to percent delta
-
 % new formula
 deltaIMG = (double(foreground) - double(background)) ./ double(background) * 100;
 
