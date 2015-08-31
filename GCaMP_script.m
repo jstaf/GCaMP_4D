@@ -71,8 +71,10 @@ for stack = 1:timesThruStack
 end
 
 %% make a sweet video
+image3d = confocalStack(:, : , :, 1);
 
-makeFramePerPass('videoTest.AVI', handles.maxProject);
+makeFramePerPass('passVideo', handles.maxProject);
+makeUpdatingVideo('updatingVideo', confocalStack);
 
 %%
 
