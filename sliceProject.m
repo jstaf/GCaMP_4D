@@ -1,15 +1,19 @@
+function sliceProject(handles, threshold)
 
-image3d = confocalStack(:, : , : , 5);
-blur = 1;
-threshold = 5;
+%waitDialog = waitbar(0, 'Computing 3D viewfield...');
 
+FGval = get(handles.FGselect, 'Value');
+image3d = handles.confocalStack(:, :, :, FGval);
+
+% blur image to remove noise (its really hard to see whats going on otherwise)
 dimensions = size(image3d);
-if (blur)
-    gauss = fspecial('gaussian', 7, 2);
-    for imageNum = 1:dimensions(3)
-        image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
-    end
+gauss = fspecial('gaussian', 7, 2);
+for imageNum = 1:dimensions(3)
+    %waitbar(imageNum/(dimensions(3) + 1), waitDialog, 'Computing 3D viewfield...');
+    image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
 end
+
+%waitbar(dimensions(3)/(dimensions(3) + 1), waitDialog, 'Creating plot...');
 
 % create plot
 alloc = single(image3d);
@@ -19,7 +23,7 @@ set(slicePlot, 'EdgeColor', 'none')
 axis([0, dimensions(2), 0, dimensions(1), 0, dimensions(3)]);
 set(gca, 'Ydir', 'reverse'); % y axis is always fucking reversed
 
-%% manipulate view angle
+%% manipulate viewdata
 
 % need to get it into real aspect ratio with metadata later
 daspect([1, 1, 0.3]);
@@ -28,22 +32,16 @@ daspect([1, 1, 0.3]);
 % intensity in that zone
 alpha('color');
 alphaMapping = alphamap('rampup');
-% if (~blur)
-%     alphaMapping = alphaMapping + 0.15;
-% end
 alphaMapping(1:threshold) = 0;
-alphaMapping(alphaMapping > 1) = 1;
-alphaMapping(alphaMapping < 0) = 0;
+% alphaMapping(alphaMapping > 1) = 1;
+% alphaMapping(alphaMapping < 0) = 0;
 alphamap(alphaMapping);
-% if (blur)
-%     colormap('jet');
-% else
-%     colormap(flipud(colormap('gray')));
-% end
 colormap('jet');
 colorBAR = colorbar('EastOutside');
 colorBAR.Label.String = 'Raw fluorsecence value';
 
-view(-20, 30)
+%close(waitDialog);
+drawnow;
+return;
 
 

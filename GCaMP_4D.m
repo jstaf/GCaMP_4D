@@ -25,7 +25,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 09-Jul-2015 21:52:10
+% Last Modified by GUIDE v2.5 31-Aug-2015 15:05:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -155,7 +155,7 @@ if (~stackFail)
     resolution = size(series{1, 1});
     
     % preallocate memory to make things faster
-    confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
+    handles.confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
     % fill in confocalStack with our data
     for planeNum = 1:size(series, 1)
         % which image our we at in a single pass
@@ -165,16 +165,16 @@ if (~stackFail)
         passNum = ceil(planeNum / stackSize);
         
         % put the current plane where its supposed to go
-        confocalStack(:, :, stackNum, passNum) = series{planeNum, 1};
+        handles.confocalStack(:, :, stackNum, passNum) = series{planeNum, 1};
     end
     
     % make a max projection of every pass through
-    sz = size(confocalStack);
+    sz = size(handles.confocalStack);
     handles.maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
     % go through confocalStack and make a max projection for each
     for stack = 1:timesThruStack
         % make max projection
-        handles.maxProject(:, :, stack) = max(confocalStack(:, :, :, stack), [], 3);
+        handles.maxProject(:, :, stack) = max(handles.confocalStack(:, :, :, stack), [], 3);
     end
     
     % update GUI to use new values
@@ -261,22 +261,33 @@ contents = cellstr(get(handles.BGselect,'String'));
 BGfail = strcmp(defaults, contents{BGval});
 
 if (~FGfail && ~BGfail)
-    
-    FG = handles.maxProject(:, :, FGval);
-    if (handles.backgroundOn)
-        BG = handles.maxProject(:, :, BGval);
-        BG = stabilizePair(FG, BG);
-        handles.dff = subtractImg(FG, BG);
-    else
-        handles.dff = FG;
-    end
     % update and display data
     guidata(hObject, handles);
-    display(handles.dff, handles);
+    switch handles.mode
+        case 1
+            display2d(handles);
+        case 2
+            sliceProject(handles, 5);
+            view(handles.X_Angle, handles.Y_Angle);
+        otherwise
+            % do nothing
+    end
 end
 
 % displays the data
-function display(image, handles)
+function display2d(handles)
+
+BGval = get(handles.BGselect,'Value');
+FGval = get(handles.FGselect, 'Value');
+
+FG = handles.maxProject(:, :, FGval);
+if (handles.backgroundOn)
+    BG = handles.maxProject(:, :, BGval);
+    BG = stabilizePair(FG, BG);
+    image = subtractImg(FG, BG);
+else
+    image = FG;
+end
 
 percentileHI = quantile(image(:), 0.99);
 percentileLO = quantile(image(:), 0.01);
@@ -303,13 +314,18 @@ function exportDisplay_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 figure('Name', 'dF/F');
-
-try
-    display(handles.dff, handles)
-catch
-    % dont do anything... works as intended even though its throwing an
-    % error here.
+switch handles.mode
+    case 1
+        try
+            display2d(handles)
+        catch
+            % dont do anything... works as intended even though its throwing an
+            % error here.
+        end
+    case 2
+        % do nothing (yet)
 end
+
 
 
 % --- Executes on button press in enableBackground.
@@ -322,3 +338,87 @@ function enableBackground_Callback(hObject, eventdata, handles)
 handles.backgroundOn = get(hObject,'Value');
 guidata(hObject, handles);
 update(hObject, handles);
+
+
+% --- Executes on slider movement.
+function Y_Angle_Slider_Callback(hObject, eventdata, handles)
+% hObject    handle to Y_Angle_Slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+handles.Y_Angle = get(hObject,'Value');
+if (handles.mode == 2) 
+    view(handles.X_Angle, handles.Y_Angle);
+end
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function Y_Angle_Slider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Y_Angle_Slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+handles.Y_Angle = get(hObject,'Value');
+guidata(hObject, handles);
+
+
+% --- Executes on slider movement.
+function X_Angle_Slider_Callback(hObject, eventdata, handles)
+% hObject    handle to X_Angle_Slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+handles.X_Angle = get(hObject,'Value');
+if (handles.mode == 2) 
+    view(handles.X_Angle, handles.Y_Angle);
+end
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function X_Angle_Slider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to X_Angle_Slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+handles.X_Angle = get(hObject,'Value');
+guidata(hObject, handles);
+
+
+% --- Executes on selection change in ModeSelector.
+function ModeSelector_Callback(hObject, eventdata, handles)
+% hObject    handle to ModeSelector (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns ModeSelector contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from ModeSelector
+handles.mode = get(hObject,'Value');
+guidata(hObject, handles);
+update(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function ModeSelector_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ModeSelector (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.mode = get(hObject,'Value');
+guidata(hObject, handles);
