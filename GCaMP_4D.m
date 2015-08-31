@@ -267,7 +267,7 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            sliceProject(handles, 5);
+            sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), 5);
             view(handles.X_Angle, handles.Y_Angle);
         otherwise
             % do nothing
@@ -313,7 +313,7 @@ function exportDisplay_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-figure('Name', 'dF/F');
+figure('Name', 'Display copy');
 switch handles.mode
     case 1
         try
@@ -323,6 +323,8 @@ switch handles.mode
             % error here.
         end
     case 2
+        sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), 5);
+        view(handles.X_Angle, handles.Y_Angle);
         % do nothing (yet)
 end
 

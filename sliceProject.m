@@ -1,9 +1,6 @@
-function sliceProject(handles, threshold)
+function sliceProject(image3d, threshold)
 
 %waitDialog = waitbar(0, 'Computing 3D viewfield...');
-
-FGval = get(handles.FGselect, 'Value');
-image3d = handles.confocalStack(:, :, :, FGval);
 
 % blur image to remove noise (its really hard to see whats going on otherwise)
 dimensions = size(image3d);
