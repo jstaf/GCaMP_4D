@@ -1,4 +1,4 @@
-function sliceProject(image3d, threshold)
+function sliceProject(image3d, alphaMod)
 
 %waitDialog = waitbar(0, 'Computing 3D viewfield...');
 
@@ -29,9 +29,17 @@ daspect([1, 1, 0.3]);
 % intensity in that zone
 alpha('color');
 alphaMapping = alphamap('rampup');
-alphaMapping(1:threshold) = 0;
-% alphaMapping(alphaMapping > 1) = 1;
-% alphaMapping(alphaMapping < 0) = 0;
+thresh = 2;
+if (alphaMod >= 0)
+    alphaMapping(thresh:(thresh+alphaMod)) = 0;
+    slope = 1/(64 - thresh - alphaMod);
+    alphaMapping((thresh+alphaMod):64) = 0:slope:1;
+end
+% these values always need to be 0 or the image is opaque
+alphaMapping(1:(thresh+3)) = 0;
+
+alphaMapping(alphaMapping > 1) = 1;
+alphaMapping(alphaMapping < 0) = 0;
 alphamap(alphaMapping);
 colormap('jet');
 colorBAR = colorbar('EastOutside');

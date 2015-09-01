@@ -25,7 +25,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 31-Aug-2015 15:05:29
+% Last Modified by GUIDE v2.5 31-Aug-2015 17:02:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -267,10 +267,11 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), 5);
+            sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod);
             view(handles.X_Angle, handles.Y_Angle);
         otherwise
-            % do nothing
+            % do nothing - this is here as a safeguard, even though it will
+            % probably never be reached
     end
 end
 
@@ -323,7 +324,7 @@ switch handles.mode
             % error here.
         end
     case 2
-        sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), 5);
+        sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod);
         view(handles.X_Angle, handles.Y_Angle);
         % do nothing (yet)
 end
@@ -423,4 +424,31 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 handles.mode = get(hObject,'Value');
+guidata(hObject, handles);
+
+
+
+function AlphaModifier_Callback(hObject, eventdata, handles)
+% hObject    handle to AlphaModifier (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of AlphaModifier as text
+%        str2double(get(hObject,'String')) returns contents of AlphaModifier as a double
+handles.alphaMod = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+update(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function AlphaModifier_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to AlphaModifier (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.alphaMod = str2double(get(hObject,'String'));
 guidata(hObject, handles);
