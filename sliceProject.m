@@ -1,21 +1,24 @@
 function sliceProject(image3d, alphaMod)
 
-%waitDialog = waitbar(0, 'Computing 3D viewfield...');
-
 % blur image to remove noise (its really hard to see whats going on otherwise)
 dimensions = size(image3d);
 gauss = fspecial('gaussian', 7, 2);
 for imageNum = 1:dimensions(3)
-    %waitbar(imageNum/(dimensions(3) + 1), waitDialog, 'Computing 3D viewfield...');
     image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
 end
 
-%waitbar(dimensions(3)/(dimensions(3) + 1), waitDialog, 'Creating plot...');
-
 % create plot
-alloc = single(image3d);
+
+% ugh.... reverse compatibility
+ver = version();
+if (str2num(ver(1:3)) < 8.4)
+    alloc = double(image3d);
+else 
+    alloc = single(image3d);
+end
+
 slicePlot = slice(alloc, [], [], 1:32);
-set(slicePlot, 'EdgeColor', 'none')
+set(slicePlot, 'EdgeColor', 'none', 'FaceColor', 'interp', 'FaceAlpha', 'interp');
 
 axis([0, dimensions(2), 0, dimensions(1), 0, dimensions(3)]);
 set(gca, 'Ydir', 'reverse'); % y axis is always fucking reversed
@@ -45,7 +48,6 @@ colormap('jet');
 colorBAR = colorbar('EastOutside');
 colorBAR.Label.String = 'Raw fluorsecence value';
 
-%close(waitDialog);
 drawnow;
 return;
 
