@@ -25,8 +25,8 @@ set(gca, 'Ydir', 'reverse'); % y axis is always fucking reversed
 
 %% manipulate viewdata
 
-% need to get it into real aspect ratio with metadata later
-daspect([1, 1, 0.3]);
+% set aspect ratio to metadata's voxel aspect ratio
+daspect(handles.voxelSizes);
 
 % set colors and transparency of the plot to be equal to the image
 % intensity in that zone

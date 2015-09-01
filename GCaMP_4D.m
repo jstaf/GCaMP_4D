@@ -25,7 +25,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 31-Aug-2015 17:02:42
+% Last Modified by GUIDE v2.5 01-Sep-2015 16:38:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -79,6 +79,7 @@ function varargout = GCaMP_4D_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+%% FILE SELECTION ==================================================
 % --- Executes on button press in openFileButton.
 function openFileButton_Callback(hObject, eventdata, handles)
 % hObject    handle to openFileButton (see GCBO)
@@ -88,14 +89,19 @@ function openFileButton_Callback(hObject, eventdata, handles)
 % load the file 
 [filename, path] = uigetfile({'*', 'All files'}, ...
     'Select a image file to analyze...', 'MultiSelect','off');
-handles.data = bfopen([path, filename]);
 
-% get the names of each stack
-handles.stackNames = cell(size(handles.data, 1), 1);
-for i = 1:size(handles.data, 1)
-    dat = handles.data{i ,1};
-    label = strsplit(dat{1, 2}, ';');
-    handles.stackNames{i} = label{2};
+% open metadata and get stack names
+handles.reader = bfGetReader([path, filename]);
+handles.omeMeta = handles.reader.getMetadataStore();
+nStacks = handles.omeMeta.getImageCount();
+handles.stackNames = cell(nStacks, 1);
+try
+    for i = 0:(nStacks-1) % java indices
+        handles.stackNames{i} = handles.omeMeta.getImageName(i);
+    end
+catch
+    % might be no label names present so just make up stack numbers
+    handles.stackNames = 1:nStacks;
 end
 
 % update stackselector values and open first stack
@@ -115,6 +121,8 @@ function openFileButton_KeyPressFcn(hObject, eventdata, handles)
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
 
+
+%% STACK SELECTION ================================================
 % --- Executes on selection change in stackSelector.
 function stackSelector_Callback(hObject, eventdata, handles)
 % hObject    handle to stackSelector (see GCBO)
@@ -131,44 +139,48 @@ function selectStack(hObject, handles)
 contents = cellstr(get(hObject,'String'));
 stackFail = strcmp('Needs file...', contents{get(hObject,'Value')});
 if (~stackFail)
-    % open and reformat data
-    
+    %% parse metadata
     % grab the stack we want from the gui
-    whichStack = get(hObject,'Value');
-    series = handles.data{whichStack, 1};
+    whichStack = get(hObject,'Value') - 1; % java indices for metadata store
     
-    % take first element of metadata and figure out Z and T
-    stackData = strsplit(series{1, 2}, ';');
-    stackSize = strsplit(stackData{end-1}, '/');
-    % number of times we went through the stack
-    stackSize = str2double(stackSize{2});
+    % [X, Y] = x/y resolution of our image planes
+    resolution = [omeMeta.getPixelsSizeX(whichStack), omeMeta.getPixelsSizeY];
+    % Z = size of stack
+    stackSize = handles.omeMeta.getPixelsSizeZ(whichStack);
+    % T = number of times we went through the stack / action repeated
+    timesThruStack = handles.omeMeta.getPixelsSizeT(whichStack);
+    % total number of planes in our stack
+    totalPlanes = handles.omeMeta.getPlaneCount(whichStack);
     
-    timesThruStack = strsplit(stackData{end}, '/');
-    timesThruStack = str2double(timesThruStack{2});
+    % retrieve absolute voxel sizes in uM
+    voxelSizeX = handles.omeMeta.getPixelsPhysicalSizeX(whichStack).value(ome.units.UNITS.MICROM).doubleValue();
+    voxelSizeY = handles.omeMeta.getPixelsPhysicalSizeY(whichStack).value(ome.units.UNITS.MICROM).doubleValue();
+    voxelSizeZ = handles.omeMeta.getPixelsPhysicalSizeZ(whichStack).value(ome.units.UNITS.MICROM).doubleValue();
+    handles.voxelSizes = [voxelSizeX, voxelSizeY, voxelSizeZ];
     
-    % warn if final stack is incomplete
-    if (timesThruStack ~= (size(series, 1) / stackSize))
-        warning('Warning, calculated number of stacks DOES NOT MATCH metadata');
-    end
-    
-    % whats the size of the first image plane
-    resolution = size(series{1, 1});
-    
+    %% open file
     % preallocate memory to make things faster
     handles.confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
+    timeSinceLast = zeros(totalPlanes);
+    
     % fill in confocalStack with our data
-    for planeNum = 1:size(series, 1)
-        % which image our we at in a single pass
+    for planeNum = 1:totalPlanes
+        % which image our we at in a single pass?
         stackNum = mod(planeNum, stackSize) + 1;
         
-        % what pass through our sample are we at
+        % what pass through our sample are we at?
         passNum = ceil(planeNum / stackSize);
         
-        % put the current plane where its supposed to go
-        handles.confocalStack(:, :, stackNum, passNum) = series{planeNum, 1};
+        % individually grab plane and put it where its supposed to go
+        handles.confocalStack(:, :, stackNum, passNum) = bfGetPlane(handles.reader, planeNum);
+        
+        % get time since last frame
+        timeSinceLast(planeNum) = handles.omeMeta.getPlaneDeltaT(whichStack, planeNum).doubleValue();
     end
+    % determine framerate
+    handles.framerate = round(mean(timeSinceLast(2:end)));
     
-    % make a max projection of every pass through
+    %% make a max projection of every pass through for quick 2D viewing
     sz = size(handles.confocalStack);
     handles.maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
     % go through confocalStack and make a max projection for each
@@ -199,6 +211,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+%% PASS SELECTION ==================================================
 % --- Executes on selection change in BGselect.
 function BGselect_Callback(hObject, eventdata, handles)
 % hObject    handle to BGselect (see GCBO)
@@ -247,6 +260,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+%% UPDATE DISPLAY ================================================
 % update the delta frame
 function update(hObject, handles)
 
@@ -275,6 +289,7 @@ if (~FGfail && ~BGfail)
     end
 end
 
+%% DISPLAY 2D IMAGE ===============================================
 % displays the data
 function display2d(handles)
 
@@ -307,7 +322,7 @@ else
 end
 drawnow;
 
-
+%% EXPORT DISPLAY =================================================
 % --- Executes on button press in exportDisplay.
 function exportDisplay_Callback(hObject, eventdata, handles)
 % hObject    handle to exportDisplay (see GCBO)
@@ -330,6 +345,15 @@ switch handles.mode
 end
 
 
+%% BACKGROUND SUBTRACTION ====================================
+% --- Executes during object creation, after setting all properties.
+function enableBackground_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to enableBackground (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+handles.backgroundOn = get(hObject,'Value');
+guidata(hObject, handles);
+
 
 % --- Executes on button press in enableBackground.
 function enableBackground_Callback(hObject, eventdata, handles)
@@ -342,7 +366,7 @@ handles.backgroundOn = get(hObject,'Value');
 guidata(hObject, handles);
 update(hObject, handles);
 
-
+%% SLIDERS ======================================================
 % --- Executes on slider movement.
 function Y_Angle_Slider_Callback(hObject, eventdata, handles)
 % hObject    handle to Y_Angle_Slider (see GCBO)
@@ -399,7 +423,7 @@ end
 handles.X_Angle = get(hObject,'Value');
 guidata(hObject, handles);
 
-
+%% MODE SELECTOR ==============================================
 % --- Executes on selection change in ModeSelector.
 function ModeSelector_Callback(hObject, eventdata, handles)
 % hObject    handle to ModeSelector (see GCBO)
@@ -427,7 +451,7 @@ handles.mode = get(hObject,'Value');
 guidata(hObject, handles);
 
 
-
+%% ALPHA MODIFIER ===============================================
 function AlphaModifier_Callback(hObject, eventdata, handles)
 % hObject    handle to AlphaModifier (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB

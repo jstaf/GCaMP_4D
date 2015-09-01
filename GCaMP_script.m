@@ -7,6 +7,25 @@
 addpath('./bfmatlab');
 
 handles = struct();
+
+% new image loading code, only open one stack at a time
+reader = bfGetReader('April24-206843-cv2nls-13xGCaMP6s-4.lif');
+omeMeta = reader.getMetadataStore();
+nStacks = omeMeta.getImageCount();
+for i = 0:(nStacks-1)
+    omeMeta.getImageName(i)
+end
+
+
+
+handles.data = bfopenSingle('April24-206843-cv2nls-13xGCaMP6s-4.lif', whichStack);
+
+% retrieve absolute voxel sizes in uM
+voxelSizeX = omeMeta.getPixelsPhysicalSizeX(2).value(ome.units.UNITS.MICROM).doubleValue();
+voxelSizeY = omeMeta.getPixelsPhysicalSizeY(2).value(ome.units.UNITS.MICROM).doubleValue(); 
+voxelSizeZ = omeMeta.getPixelsPhysicalSizeZ(2).value(ome.units.UNITS.MICROM).doubleValue();
+handles.voxelSizes = [voxelSizeX, voxelSizeY, voxelSizeZ];
+
 handles.data = bfopen('April24-206843-cv2nls-13xGCaMP6s-4.lif');
 % get the names of each stack
 handles.stackNames = cell(size(handles.data, 1), 1);
