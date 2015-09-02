@@ -291,7 +291,7 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            display3d(handles, 2);
+            display3d(handles, 1);
     end
 end
 

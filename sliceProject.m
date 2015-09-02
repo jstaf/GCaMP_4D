@@ -46,6 +46,15 @@ alpha('color');
 alphaMapping = alphamap('rampup');
 thresh = 2;
 cmin = alphaMod;
+% reset colorbar to new alphamap min
+cmax = quantile(alloc(:), 0.9999);
+if cmin > cmax
+    warning('Alpha filter value is greater than maximum color value, defaulting to 0');
+    cmin = 0;
+    alphaMod = 0;
+end
+caxis([cmin, cmax])
+
 % casting to 32 bit integer removes vals lower than 0 and prevents indexing
 % errors
 alphaMod = uint32((alphaMod - thresh) / (clim(2) - clim(1)) * 64);
@@ -59,8 +68,7 @@ alphaMapping(alphaMapping > 1) = 1;
 alphaMapping(alphaMapping < 0) = 0;
 alphamap(alphaMapping)
 
-% reset colorbar to new alphamap min
-caxis([cmin, clim(2)])
+
 
 % not sure if i believe the metadata
 voxelSizes(3) = voxelSizes(3) / 2;
