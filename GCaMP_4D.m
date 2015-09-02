@@ -291,8 +291,7 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod, handles.voxelSizes);
-            view(handles.X_Angle, handles.Y_Angle);
+            display3d(handles);
         otherwise
             % do nothing - this is here as a safeguard, even though it will
             % probably never be reached
@@ -331,6 +330,20 @@ else
     colorBAR.Label.String = 'Raw fluorsecence value';
 end
 drawnow;
+
+%% DISPLAY 3D IMAGE ================================================
+function display3d(handles)
+
+if ~handles.backgroundOn
+    image3d = handles.confocalStack(:, :, :, get(handles.FGselect, 'Value'));
+    image3d = imgaussfilt3(image3d, 1);
+else
+    image3d = subtractField(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), ...
+        handles.confocalStack(:, :, :, get(handles.BGselect, 'Value')));    
+end
+sliceProject(image3d, handles.alphaMod, handles.voxelSizes);
+view(handles.X_Angle, handles.Y_Angle);
+
 
 %% EXPORT DISPLAY =================================================
 % --- Executes on button press in exportDisplay.

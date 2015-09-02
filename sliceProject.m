@@ -3,10 +3,6 @@ function sliceProject(image3d, alphaMod, voxelSizes)
 % blur image to remove noise (its really hard to see whats going on otherwise)
 dimensions = size(image3d);
 %gauss = fspecial('gaussian', 7, 2);
-for imageNum = 1:dimensions(3)
-    %image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
-    image3d(:, :, imageNum) = imgaussfilt(image3d(:, :, imageNum), 2);
-end
 
 % reduce data complexity for plotting
 dataReduce = 2;

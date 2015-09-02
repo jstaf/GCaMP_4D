@@ -23,7 +23,7 @@ if (size(pairs, 1) > 5)
     [transform] = estimateGeometricTransform(points2, points1, 'affine');
     image2warp = imwarp(image2, transform, 'OutputView', imref2d(size(image2)));
 else
-    disp('Could not align image.');
+    %disp('Could not align image.');
     image2warp = image2;
 end
 
