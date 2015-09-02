@@ -1,11 +1,8 @@
-function sliceProject(image3d, alphaMod, voxelSizes)
-
-% blur image to remove noise (its really hard to see whats going on otherwise)
-dimensions = size(image3d);
-%gauss = fspecial('gaussian', 7, 2);
+function sliceProject(image3d, alphaMod, voxelSizes, dataReduce)
 
 % reduce data complexity for plotting
-dataReduce = 2;
+dimensions = size(image3d);
+
 % ugh.... reverse compatibility
 ver = version();
 if (str2num(ver(1:3)) < 8.4)
@@ -38,26 +35,32 @@ set(gca, 'Ydir', 'reverse'); % y axis is always fucking reversed
 
 %% manipulate viewdata
 
+colormap('jet');
+colorBAR = colorbar('EastOutside');
+colorBAR.Label.String = 'Raw fluorsecence value';
+clim = caxis();
+
 % set colors and transparency of the plot to be equal to the image
 % intensity in that zone
 alpha('color');
 alphaMapping = alphamap('rampup');
 thresh = 2;
-if (alphaMod >= 0)
-    alphaMod = uint8((alphaMod - thresh) / 255 * 64);
-    alphaMapping(thresh:(thresh+alphaMod)) = 0;
-    slope = 1/(64 - thresh - double(alphaMod));
-    alphaMapping((thresh+alphaMod):64) = 0:slope:1;
-end
+cmin = alphaMod;
+% casting to 32 bit integer removes vals lower than 0 and prevents indexing
+% errors
+alphaMod = uint32((alphaMod - thresh) / (clim(2) - clim(1)) * 64);
+alphaMapping(thresh:(thresh+alphaMod)) = 0;
+slope = 1/(64 - thresh - double(alphaMod));
+alphaMapping((thresh+alphaMod):64) = 0:slope:1;
 % these values always need to be 0 or the image is opaque
 alphaMapping(1:(thresh+2)) = 0;
 
 alphaMapping(alphaMapping > 1) = 1;
 alphaMapping(alphaMapping < 0) = 0;
-alphamap(alphaMapping);
-colormap('jet');
-colorBAR = colorbar('EastOutside');
-colorBAR.Label.String = 'Raw fluorsecence value';
+alphamap(alphaMapping)
+
+% reset colorbar to new alphamap min
+caxis([cmin, clim(2)])
 
 % not sure if i believe the metadata
 voxelSizes(3) = voxelSizes(3) / 2;

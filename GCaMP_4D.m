@@ -291,10 +291,7 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            display3d(handles);
-        otherwise
-            % do nothing - this is here as a safeguard, even though it will
-            % probably never be reached
+            display3d(handles, 2);
     end
 end
 
@@ -321,18 +318,18 @@ imshow(image, [percentileLO, percentileHI]);
 % create colorbar and its limits
 warning('off','MATLAB:warn_r14_stucture_assignment');
 if (handles.backgroundOn)
-    colormap(jet);
+    colormap('jet');
     colorBAR = colorbar('EastOutside');
     colorBAR.Label.String = 'Change in fluorescence (dF/F)';
 else
-    colormap(gray);
+    colormap('gray');
     colorBAR = colorbar('EastOutside');
     colorBAR.Label.String = 'Raw fluorsecence value';
 end
 drawnow;
 
 %% DISPLAY 3D IMAGE ================================================
-function display3d(handles)
+function display3d(handles, dataReduce)
 
 if ~handles.backgroundOn
     image3d = handles.confocalStack(:, :, :, get(handles.FGselect, 'Value'));
@@ -341,7 +338,7 @@ else
     image3d = subtractField(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), ...
         handles.confocalStack(:, :, :, get(handles.BGselect, 'Value')));    
 end
-sliceProject(image3d, handles.alphaMod, handles.voxelSizes);
+sliceProject(image3d, handles.alphaMod, handles.voxelSizes, dataReduce);
 view(handles.X_Angle, handles.Y_Angle);
 
 
@@ -362,9 +359,8 @@ switch handles.mode
             % error here.
         end
     case 2
-        sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod, handles.voxelSizes);
-        view(handles.X_Angle, handles.Y_Angle);
-        % do nothing (yet)
+        % higher res export version
+        display3d(handles, 1); 
 end
 
 
