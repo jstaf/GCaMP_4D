@@ -469,9 +469,14 @@ function AlphaModifier_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of AlphaModifier as text
 %        str2double(get(hObject,'String')) returns contents of AlphaModifier as a double
-handles.alphaMod = str2double(get(hObject,'String'));
-guidata(hObject, handles);
-update(hObject, handles);
+if (isnan(str2double(get(hObject,'String'))))
+    warning('You must enter valid a number');
+else
+    handles.alphaMod = str2double(get(hObject,'String'));
+    guidata(hObject, handles);
+    update(hObject, handles);
+end
+
 
 % --- Executes during object creation, after setting all properties.
 function AlphaModifier_CreateFcn(hObject, eventdata, handles)

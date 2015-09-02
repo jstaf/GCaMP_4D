@@ -7,16 +7,30 @@ for imageNum = 1:dimensions(3)
     image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
 end
 
-% create plot
-
+% reduce data complexity for plotting
+dataReduce = 2;
 % ugh.... reverse compatibility
 ver = version();
 if (str2num(ver(1:3)) < 8.4)
-    alloc = double(image3d);
+    % slowwwwwwwww
+    alloc = zeros(ceil(dimensions(1) / dataReduce), ...
+        ceil(dimensions(2) / dataReduce), ...
+        dimensions(3), 'double');
 else 
-    % easier on memory
-    alloc = single(image3d);
+    % easier on memory, and faster!
+    alloc = zeros(ceil(dimensions(1) / dataReduce), ...
+        ceil(dimensions(2) / dataReduce), ...
+        dimensions(3), 'single');
 end
+for x = 1:dataReduce:dimensions(1)
+    for y = 1:dataReduce:dimensions(2)
+        alloc(ceil(x / dataReduce), ceil(y / dataReduce), :) = image3d(x, y, :);
+    end
+end
+% update dimensions to new, smaller size
+dimensions = size(alloc);
+% update aspect ratio
+voxelSizes(1:2) = voxelSizes(1:2) * dataReduce;
 
 spread = 1;
 slicePlot = slice(alloc, [], [], 1:spread:dimensions(3));
@@ -46,6 +60,9 @@ alphamap(alphaMapping);
 colormap('jet');
 colorBAR = colorbar('EastOutside');
 colorBAR.Label.String = 'Raw fluorsecence value';
+
+% not sure if i believe the metadata
+voxelSizes(3) = voxelSizes(3) / 2;
 
 % set aspect ratio to metadata's voxel aspect ratio
 daspect(1 ./ voxelSizes);
