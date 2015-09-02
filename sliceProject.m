@@ -2,9 +2,10 @@ function sliceProject(image3d, alphaMod, voxelSizes)
 
 % blur image to remove noise (its really hard to see whats going on otherwise)
 dimensions = size(image3d);
-gauss = fspecial('gaussian', 7, 2);
+%gauss = fspecial('gaussian', 7, 2);
 for imageNum = 1:dimensions(3)
-    image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
+    %image3d(:, :, imageNum) = imfilter(image3d(:, :, imageNum), gauss);
+    image3d(:, :, imageNum) = imgaussfilt(image3d(:, :, imageNum), 2);
 end
 
 % reduce data complexity for plotting
@@ -47,12 +48,13 @@ alpha('color');
 alphaMapping = alphamap('rampup');
 thresh = 2;
 if (alphaMod >= 0)
+    alphaMod = uint8((alphaMod - thresh) / 255 * 64);
     alphaMapping(thresh:(thresh+alphaMod)) = 0;
-    slope = 1/(64 - thresh - alphaMod);
+    slope = 1/(64 - thresh - double(alphaMod));
     alphaMapping((thresh+alphaMod):64) = 0:slope:1;
 end
 % these values always need to be 0 or the image is opaque
-alphaMapping(1:(thresh+3)) = 0;
+alphaMapping(1:(thresh+2)) = 0;
 
 alphaMapping(alphaMapping > 1) = 1;
 alphaMapping(alphaMapping < 0) = 0;
