@@ -291,7 +291,7 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            display3d(handles, 1);
+            display3d(handles, 2);
     end
 end
 
@@ -304,15 +304,19 @@ FGval = get(handles.FGselect, 'Value');
 
 FG = handles.maxProject(:, :, FGval);
 if (handles.backgroundOn)
-    BG = handles.maxProject(:, :, BGval);
-    BG = stabilizePair(FG, BG);
-    image = subtractImg(FG, BG);
+    % new subtraction code
+    BG = handles.confocalStack(:, :, :, BGval);
+    FG = handles.confocalStack(:, :, :, FGval);
+    FG = subtractField(FG, BG);
+    image = max(FG, [], 3);
+    % have to filter again or it looks very meh
+    image = imgaussfilt(image, 1);
 else
     image = FG;
 end
 
-percentileHI = quantile(image(:), 0.99);
-percentileLO = quantile(image(:), 0.01);
+percentileHI = quantile(image(:), 0.999);
+percentileLO = quantile(image(:), 0.2);
 imshow(image, [percentileLO, percentileHI]);
 
 % create colorbar and its limits
@@ -359,8 +363,7 @@ switch handles.mode
             % error here.
         end
     case 2
-        % higher res export version
-        display3d(handles, 1); 
+        display3d(handles, 2); 
 end
 
 

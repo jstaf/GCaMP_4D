@@ -49,11 +49,10 @@ cmin = alphaMod;
 % reset colorbar to new alphamap min
 cmax = quantile(alloc(:), 0.9999);
 if cmin > cmax
-    warning('Alpha filter value is greater than maximum color value, defaulting to 0');
-    cmin = 0;
+    disp('Alpha filter value is greater than maximum color value, defaulting to 0');
     alphaMod = 0;
 end
-caxis([cmin, cmax])
+caxis([alphaMod, cmax])
 
 % casting to 32 bit integer removes vals lower than 0 and prevents indexing
 % errors
