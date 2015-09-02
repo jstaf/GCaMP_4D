@@ -59,9 +59,6 @@ function GCaMP_4D_OpeningFcn(hObject, eventdata, handles, varargin)
 % is)
 addpath('./bfmatlab');
 
-% make sure image subtraction is turned on
-handles.backgroundOn = 1;
-
 % Choose default command line output for GCaMP_4D
 handles.output = hObject;
 
@@ -97,7 +94,7 @@ nStacks = handles.omeMeta.getImageCount();
 handles.stackNames = cell(nStacks, 1);
 try
     for i = 0:(nStacks-1) % java indices
-        handles.stackNames{i} = handles.omeMeta.getImageName(i);
+        handles.stackNames{i + 1} = char(handles.omeMeta.getImageName(i));
     end
 catch
     % might be no label names present so just make up stack numbers
@@ -144,27 +141,35 @@ if (~stackFail)
     whichStack = get(hObject,'Value') - 1; % java indices for metadata store
     
     % [X, Y] = x/y resolution of our image planes
-    resolution = [omeMeta.getPixelsSizeX(whichStack), omeMeta.getPixelsSizeY];
+    resolution = [handles.omeMeta.getPixelsSizeY(whichStack).getNumberValue().doubleValue(), ...
+        handles.omeMeta.getPixelsSizeX(whichStack).getNumberValue().doubleValue()];
     % Z = size of stack
-    stackSize = handles.omeMeta.getPixelsSizeZ(whichStack);
+    stackSize = handles.omeMeta.getPixelsSizeZ(whichStack).getNumberValue().doubleValue();
     % T = number of times we went through the stack / action repeated
-    timesThruStack = handles.omeMeta.getPixelsSizeT(whichStack);
-    % total number of planes in our stack
+    timesThruStack = handles.omeMeta.getPixelsSizeT(whichStack).getNumberValue().doubleValue();
+    % N = total number of planes in our stack
     totalPlanes = handles.omeMeta.getPlaneCount(whichStack);
     
-    % retrieve absolute voxel sizes in uM
-    voxelSizeX = handles.omeMeta.getPixelsPhysicalSizeX(whichStack).value(ome.units.UNITS.MICROM).doubleValue();
-    voxelSizeY = handles.omeMeta.getPixelsPhysicalSizeY(whichStack).value(ome.units.UNITS.MICROM).doubleValue();
-    voxelSizeZ = handles.omeMeta.getPixelsPhysicalSizeZ(whichStack).value(ome.units.UNITS.MICROM).doubleValue();
-    handles.voxelSizes = [voxelSizeX, voxelSizeY, voxelSizeZ];
+    % [x, y, z] = retrieve absolute voxel sizes in uM
+    handles.voxelSizes = [ ...
+        handles.omeMeta.getPixelsPhysicalSizeX(whichStack).value(ome.units.UNITS.MICROM).doubleValue(), ...
+        handles.omeMeta.getPixelsPhysicalSizeY(whichStack).value(ome.units.UNITS.MICROM).doubleValue(), ...
+        handles.omeMeta.getPixelsPhysicalSizeZ(whichStack).value(ome.units.UNITS.MICROM).doubleValue()];
     
     %% open file
     % preallocate memory to make things faster
     handles.confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
-    timeSinceLast = zeros(totalPlanes);
+    timeSinceLast = zeros(totalPlanes, 1);
     
+    % needs to be set or we open the first series every time
+    handles.reader.setSeries(whichStack);
+    
+    progressBar = waitbar(0, 'Opening stack...');
     % fill in confocalStack with our data
     for planeNum = 1:totalPlanes
+        waitbar(planeNum / totalPlanes, progressBar, ...
+            ['Opening plane ', num2str(planeNum), ' of ', num2str(totalPlanes)]);
+        
         % which image our we at in a single pass?
         stackNum = mod(planeNum, stackSize) + 1;
         
@@ -174,8 +179,9 @@ if (~stackFail)
         % individually grab plane and put it where its supposed to go
         handles.confocalStack(:, :, stackNum, passNum) = bfGetPlane(handles.reader, planeNum);
         
-        % get time since last frame
-        timeSinceLast(planeNum) = handles.omeMeta.getPlaneDeltaT(whichStack, planeNum).doubleValue();
+        % get time since last frame... weird how this one uses java indices
+        % and bfGetPlane does not...
+        timeSinceLast(planeNum) = handles.omeMeta.getPlaneDeltaT(whichStack, planeNum - 1).value();
     end
     % determine framerate
     handles.framerate = round(mean(timeSinceLast(2:end)));
@@ -185,9 +191,13 @@ if (~stackFail)
     handles.maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
     % go through confocalStack and make a max projection for each
     for stack = 1:timesThruStack
+        waitbar(planeNum / totalPlanes, progressBar, ...
+            'Creating max projections');
         % make max projection
         handles.maxProject(:, :, stack) = max(handles.confocalStack(:, :, :, stack), [], 3);
     end
+    
+    close(progressBar);
     
     % update GUI to use new values
     set(handles.BGselect, 'String', 1:timesThruStack);
@@ -281,7 +291,7 @@ if (~FGfail && ~BGfail)
         case 1
             display2d(handles);
         case 2
-            sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod);
+            sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod, handles.voxelSizes);
             view(handles.X_Angle, handles.Y_Angle);
         otherwise
             % do nothing - this is here as a safeguard, even though it will
@@ -339,7 +349,7 @@ switch handles.mode
             % error here.
         end
     case 2
-        sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod);
+        sliceProject(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), handles.alphaMod, handles.voxelSizes);
         view(handles.X_Angle, handles.Y_Angle);
         % do nothing (yet)
 end

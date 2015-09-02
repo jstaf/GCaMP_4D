@@ -1,4 +1,4 @@
-function sliceProject(image3d, alphaMod)
+function sliceProject(image3d, alphaMod, voxelSizes)
 
 % blur image to remove noise (its really hard to see whats going on otherwise)
 dimensions = size(image3d);
@@ -14,19 +14,18 @@ ver = version();
 if (str2num(ver(1:3)) < 8.4)
     alloc = double(image3d);
 else 
+    % easier on memory
     alloc = single(image3d);
 end
 
-slicePlot = slice(alloc, [], [], 1:32);
-set(slicePlot, 'EdgeColor', 'none', 'FaceColor', 'interp', 'FaceAlpha', 'interp');
+spread = 1;
+slicePlot = slice(alloc, [], [], 1:spread:dimensions(3));
+set(slicePlot, 'EdgeColor', 'none');
 
 axis([0, dimensions(2), 0, dimensions(1), 0, dimensions(3)]);
 set(gca, 'Ydir', 'reverse'); % y axis is always fucking reversed
 
 %% manipulate viewdata
-
-% set aspect ratio to metadata's voxel aspect ratio
-daspect(handles.voxelSizes);
 
 % set colors and transparency of the plot to be equal to the image
 % intensity in that zone
@@ -48,7 +47,9 @@ colormap('jet');
 colorBAR = colorbar('EastOutside');
 colorBAR.Label.String = 'Raw fluorsecence value';
 
-drawnow;
+% set aspect ratio to metadata's voxel aspect ratio
+daspect(1 ./ voxelSizes);
+
 return;
 
 

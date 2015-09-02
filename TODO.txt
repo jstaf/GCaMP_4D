@@ -1,6 +1,5 @@
 To do list for the GUI/other stuff
 - make GUI ability to look at a certain depth, render video at a certain depth
 - make ability to play video in GUI
-- make 3D video (slice function with alphamap)
-- get metadata somehow for imaging speed and depth (3 microns typically)
+- change 2d max projection calculation to 3d max projection calculation
 - add imfreehand mask to calculate average df/f for each region
