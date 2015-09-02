@@ -186,17 +186,6 @@ if (~stackFail)
     % determine framerate
     handles.framerate = round(mean(timeSinceLast(2:end)));
     
-    %% make a max projection of every pass through for quick 2D viewing
-    sz = size(handles.confocalStack);
-    handles.maxProject = zeros(sz(1), sz(2), sz(4), 'uint8');
-    % go through confocalStack and make a max projection for each
-    for stack = 1:timesThruStack
-        waitbar(planeNum / totalPlanes, progressBar, ...
-            'Creating max projections');
-        % make max projection
-        handles.maxProject(:, :, stack) = max(handles.confocalStack(:, :, :, stack), [], 3);
-    end
-    
     close(progressBar);
     
     % update GUI to use new values
@@ -289,62 +278,11 @@ if (~FGfail && ~BGfail)
     guidata(hObject, handles);
     switch handles.mode
         case 1
-            display2d(handles);
+            display2D(handles);
         case 2
-            display3d(handles, 2);
+            display3D(handles, 2);
     end
 end
-
-%% DISPLAY 2D IMAGE ===============================================
-% displays the data
-function display2d(handles)
-
-BGval = get(handles.BGselect,'Value');
-FGval = get(handles.FGselect, 'Value');
-
-FG = handles.maxProject(:, :, FGval);
-if (handles.backgroundOn)
-    % new subtraction code
-    BG = handles.confocalStack(:, :, :, BGval);
-    FG = handles.confocalStack(:, :, :, FGval);
-    FG = subtractField(FG, BG);
-    image = max(FG, [], 3);
-    % have to filter again or it looks very meh
-    image = imgaussfilt(image, 1);
-else
-    image = FG;
-end
-
-percentileHI = quantile(image(:), 0.999);
-percentileLO = quantile(image(:), 0.2);
-imshow(image, [percentileLO, percentileHI]);
-
-% create colorbar and its limits
-warning('off','MATLAB:warn_r14_stucture_assignment');
-if (handles.backgroundOn)
-    colormap('jet');
-    colorBAR = colorbar('EastOutside');
-    colorBAR.Label.String = 'Change in fluorescence (dF/F)';
-else
-    colormap('gray');
-    colorBAR = colorbar('EastOutside');
-    colorBAR.Label.String = 'Raw fluorsecence value';
-end
-drawnow;
-
-%% DISPLAY 3D IMAGE ================================================
-function display3d(handles, dataReduce)
-
-if ~handles.backgroundOn
-    image3d = handles.confocalStack(:, :, :, get(handles.FGselect, 'Value'));
-    image3d = imgaussfilt3(image3d, 1);
-else
-    image3d = subtractField(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), ...
-        handles.confocalStack(:, :, :, get(handles.BGselect, 'Value')));    
-end
-sliceProject(image3d, handles.alphaMod, handles.voxelSizes, dataReduce);
-view(handles.X_Angle, handles.Y_Angle);
-
 
 %% EXPORT DISPLAY =================================================
 % --- Executes on button press in exportDisplay.
@@ -357,13 +295,13 @@ figure('Name', 'Display copy');
 switch handles.mode
     case 1
         try
-            display2d(handles)
+            display2D(handles)
         catch
             % dont do anything... works as intended even though its throwing an
             % error here.
         end
     case 2
-        display3d(handles, 2); 
+        display3D(handles, 2); 
 end
 
 
