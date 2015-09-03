@@ -1,0 +1,8 @@
+COMPATIBILITY
+
+This software uses several 2015a-specific functions and performance improvements. I wasn't willing to sacrifice these by default in the name of reverse compatibility. However, I've added reverse compatibility functions to allow use on older versions. You should still be able to run things on older versions, but plots will not be quite as pretty, and performance will be significantly slower during certain computations.
+
+The major differences in code are:
+-Gaussian filtering - Pre-2015a gaussian filtering algorithms are slightly worse and more pixelated. 3D gaussian filters are not supported.
+-3D viewer - The 3D plots require use of the double data format, making it significantly more demanding on your computer's memory. 2014b and later versions can use single data, resulting in a much lighter memory burden.
+

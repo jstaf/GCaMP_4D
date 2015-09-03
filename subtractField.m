@@ -1,4 +1,4 @@
-function [deltaField] = subtractField(FGfield, BGfield)
+function [deltaField] = subtractField(FGfield, BGfield, ver)
 % 3d field subtraction code
 
 % align
@@ -10,8 +10,17 @@ for i = 1:depth
 end
 
 % gaussfilter
-FGfield = imgaussfilt3(FGfield, 2);
-BGfield = imgaussfilt3(BGfield, 2);
+if ver < 8.5
+    % have to individually filter every plane
+    gauss = fspecial('gaussian', 7, 2);
+    for i = 1:size(FGfield, 3)
+        FGfield(:, :, i) = imfilter(FGfield(:, :, i), gauss);
+        BGfield(:, :, i) = imfilter(BGfield(:, :, i), gauss);
+    end
+else
+    FGfield = imgaussfilt3(FGfield, 2);
+    BGfield = imgaussfilt3(BGfield, 2);
+end
 
 % subtract fields and wipe division by 0 errors
 deltaField = single((double(FGfield) - double(BGfield)) ./ double(BGfield) * 100);

@@ -55,6 +55,13 @@ function GCaMP_4D_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to GCaMP_4D (see VARARGIN)
 
+% detect version for later use
+handles.ver = version();
+handles.ver = str2num(handles.ver(1:3));
+if handles.ver < 8.5
+    warning('You are using an older version of MATLAB than is recommended, see compatibility.txt.');
+end
+
 % need to add the bioformats package to our PATH (so MATLAB knows where it
 % is)
 addpath('./bfmatlab');

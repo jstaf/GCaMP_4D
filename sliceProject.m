@@ -1,11 +1,10 @@
-function sliceProject(image3d, alphaMod, voxelSizes, dataReduce)
+function sliceProject(image3d, alphaMod, voxelSizes, dataReduce, version)
 
 % reduce data complexity for plotting
 dimensions = size(image3d);
 
 % ugh.... reverse compatibility
-ver = version();
-if (str2num(ver(1:3)) < 8.4)
+if (version < 8.5)
     % slowwwwwwwww
     alloc = zeros(ceil(dimensions(1) / dataReduce), ...
         ceil(dimensions(2) / dataReduce), ...
