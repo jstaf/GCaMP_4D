@@ -65,6 +65,12 @@ end
 % need to add the bioformats package to our PATH (so MATLAB knows where it
 % is)
 addpath('./bfmatlab');
+% initialization code from bfopen()
+status = bfCheckJavaPath(true);
+assert(status, ['Missing Bio-Formats library. Either add bioformats_package.jar '...
+    'to the static Java path or add it to the Matlab path.']);
+% log4j gets mad otherwise
+javaMethod('enableLogging', 'loci.common.DebugTools', 'INFO');
 
 % Choose default command line output for GCaMP_4D
 handles.output = hObject;
