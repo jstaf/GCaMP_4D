@@ -1,4 +1,4 @@
-function display2D(handles)
+function display2D(hObject, handles)
 % displays the data in flat form
 
 FG = handles.confocalStack(:, :, :, get(handles.FGselect, 'Value'));
@@ -18,9 +18,8 @@ else
     image = max(FG, [], 3);
 end
 
-percentileHI = quantile(image(:), 0.999);
-percentileLO = quantile(image(:), 0.01);
-imshow(image, [percentileLO, percentileHI]);
+autoscale(hObject, handles, image, 0.01, 0.999);
+imshow(image, [handles.filterMin, handles.filterMax]);
 
 % create colorbar and its limits
 warning('off','MATLAB:warn_r14_stucture_assignment');

@@ -25,7 +25,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 01-Sep-2015 16:38:09
+% Last Modified by GUIDE v2.5 02-Sep-2015 19:44:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -47,6 +47,7 @@ end
 % End initialization code - DO NOT EDIT
 
 
+%% INITIALIZATION ========================================================
 % --- Executes just before GCaMP_4D is made visible.
 function GCaMP_4D_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -89,6 +90,7 @@ function varargout = GCaMP_4D_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+
 %% FILE SELECTION ==================================================
 % --- Executes on button press in openFileButton.
 function openFileButton_Callback(hObject, eventdata, handles)
@@ -121,15 +123,6 @@ set(handles.BGselect, 'Value', 1);
 set(handles.FGselect, 'Value', 1);
 guidata(hObject, handles);
 selectStack(hObject, handles);
-
-% --- Executes on key press with focus on openFileButton and none of its controls.
-function openFileButton_KeyPressFcn(hObject, eventdata, handles)
-% hObject    handle to openFileButton (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.UICONTROL)
-%	Key: name of the key that was pressed, in lower case
-%	Character: character interpretation of the key(s) that was pressed
-%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
-% handles    structure with handles and user data (see GUIDATA)
 
 
 %% STACK SELECTION ================================================
@@ -291,11 +284,13 @@ if (~FGfail && ~BGfail)
     guidata(hObject, handles);
     switch handles.mode
         case 1
-            display2D(handles);
+            display2D(hObject, handles);
         case 2
-            display3D(handles, 2);
+            display3D(hObject, handles, 2);
     end
+    guidata(hObject, handles);
 end
+
 
 %% EXPORT DISPLAY =================================================
 % --- Executes on button press in exportDisplay.
@@ -308,13 +303,13 @@ figure('Name', 'Display copy');
 switch handles.mode
     case 1
         try
-            display2D(handles)
+            display2D(hObject, handles)
         catch
             % dont do anything... works as intended even though its throwing an
             % error here.
         end
     case 2
-        display3D(handles, 2); 
+        display3D(hObject, handles, 2); 
 end
 
 
@@ -424,26 +419,28 @@ handles.mode = get(hObject,'Value');
 guidata(hObject, handles);
 
 
-%% ALPHA MODIFIER ===============================================
-function AlphaModifier_Callback(hObject, eventdata, handles)
-% hObject    handle to AlphaModifier (see GCBO)
+%% FILTER MODIFIERS ===============================================
+function filterMinSet_Callback(hObject, eventdata, handles)
+% hObject    handle to filterMinSet (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of AlphaModifier as text
-%        str2double(get(hObject,'String')) returns contents of AlphaModifier as a double
+% Hints: get(hObject,'String') returns contents of filterMinSet as text
+%        str2double(get(hObject,'String')) returns contents of filterMinSet as a double
 if (isnan(str2double(get(hObject,'String'))))
     warning('You must enter valid a number');
 else
-    handles.alphaMod = str2double(get(hObject,'String'));
-    guidata(hObject, handles);
-    update(hObject, handles);
+    if str2double(get(hObject,'String')) < handles.filterMax
+        handles.filterMin = str2double(get(hObject,'String'));
+        guidata(hObject, handles);
+        update(hObject, handles);
+    end
 end
 
 
 % --- Executes during object creation, after setting all properties.
-function AlphaModifier_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to AlphaModifier (see GCBO)
+function filterMinSet_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to filterMinSet (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -452,5 +449,59 @@ function AlphaModifier_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-handles.alphaMod = str2double(get(hObject,'String'));
+handles.filterMin = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+
+function filterMaxSet_Callback(hObject, eventdata, handles)
+% hObject    handle to filterMaxSet (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of filterMaxSet as text
+%        str2double(get(hObject,'String')) returns contents of filterMaxSet as a double
+if (isnan(str2double(get(hObject,'String'))))
+    warning('You must enter valid a number');
+else
+    if handles.filterMin < str2double(get(hObject,'String'))
+        handles.filterMax = str2double(get(hObject,'String'));
+        guidata(hObject, handles);
+        update(hObject, handles);
+    end
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function filterMaxSet_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to filterMaxSet (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.filterMax = str2double(get(hObject,'String'));
+guidata(hObject, handles);
+
+
+% --- Executes on button press in autoscaleSet.
+function autoscaleSet_Callback(hObject, eventdata, handles)
+% hObject    handle to autoscaleSet (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of autoscaleSet
+handles.autoscaleOn = get(hObject,'Value');
+guidata(hObject, handles);
+update(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function autoscaleSet_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to autoscaleSet (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+handles.autoscaleOn = get(hObject,'Value');
 guidata(hObject, handles);

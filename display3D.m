@@ -1,4 +1,4 @@
-function display3D(handles, dataReduce)
+function display3D(hObject, handles, dataReduce)
 % Display 3D image for plotting
 
 if handles.backgroundOn
@@ -19,7 +19,7 @@ else
     end
 end
 
-%% beginning of sliceproject code ======================================
+%% beginning of old sliceproject() code ==================================
 % reduce data complexity for plotting
 dimensions = size(image3d);
 
@@ -65,19 +65,12 @@ clim = caxis();
 alpha('color');
 alphaMapping = alphamap('rampup');
 thresh = 2;
-alphaMod = handles.alphaMod;
-cmin = alphaMod;
-% reset colorbar to new alphamap min
-cmax = quantile(alloc(:), 0.9999);
-if cmin > cmax
-    disp('Alpha filter value is greater than maximum color value, defaulting to 0');
-    alphaMod = 0;
-end
-caxis([alphaMod, cmax])
+
+autoscale(hObject, handles, alloc, 0.9, 0.9999);
 
 % casting to 32 bit integer removes vals lower than 0 and prevents indexing
 % errors
-alphaMod = uint32((alphaMod - thresh) / (clim(2) - clim(1)) * 64);
+alphaMod = uint32((handles.filterMin - thresh) / (clim(2) - clim(1)) * 64);
 alphaMapping(thresh:(thresh+alphaMod)) = 0;
 slope = 1/(64 - thresh - double(alphaMod));
 alphaMapping((thresh+alphaMod):64) = 0:slope:1;

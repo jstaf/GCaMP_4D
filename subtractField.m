@@ -11,7 +11,7 @@ end
 
 % gaussfilter
 if ver < 8.5
-    % have to individually filter every plane
+    % have to individually filter every plane... boooooooo...
     gauss = fspecial('gaussian', 7, 2);
     for i = 1:size(FGfield, 3)
         FGfield(:, :, i) = imfilter(FGfield(:, :, i), gauss);
