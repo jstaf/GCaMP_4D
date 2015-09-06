@@ -531,15 +531,15 @@ if output_name ~= 0 % did file saving dialog get closed?
     writer = VideoWriter([path, output_name]);
     writer.FrameRate = handles.framerate;
     open(writer);
-    progressBar = waitbar(0, 'Creating video...');
+    %progressBar = waitbar(0, 'Creating video...');
     % programmatically make plots and export them as images
     for frameNum = 1:handles.timesThruStack
-        waitbar(frameNum / handles.timesThruStack, progressBar, ...
-            ['Creating frame ', num2str(frameNum), ' of ' num2str(handles.timesThruStack)]);
+     %   waitbar(frameNum / handles.timesThruStack, progressBar, ...
+      %      ['Creating frame ', num2str(frameNum), ' of ' num2str(handles.timesThruStack)]);
         set(handles.FGselect, 'Value', frameNum);
         update(hObject, handles);
         writeVideo(writer, getframe(handles.mainAxes));
     end
     close(writer);
-    close(progressBar);
+    %close(progressBar);
 end
