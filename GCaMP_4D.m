@@ -25,7 +25,7 @@ function varargout = GCaMP_4D(varargin)
 
 % Edit the above text to modify the response to help GCaMP_4D
 
-% Last Modified by GUIDE v2.5 02-Sep-2015 19:44:47
+% Last Modified by GUIDE v2.5 06-Sep-2015 14:06:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -102,27 +102,30 @@ function openFileButton_Callback(hObject, eventdata, handles)
 [filename, path] = uigetfile({'*', 'All files'}, ...
     'Select a image file to analyze...', 'MultiSelect','off');
 
-% open metadata and get stack names
-handles.reader = bfGetReader([path, filename]);
-handles.omeMeta = handles.reader.getMetadataStore();
-nStacks = handles.omeMeta.getImageCount();
-handles.stackNames = cell(nStacks, 1);
-try
-    for i = 0:(nStacks-1) % java indices
-        handles.stackNames{i + 1} = char(handles.omeMeta.getImageName(i));
+% catch canceled file opening
+if filename ~= 0
+    % open metadata and get stack names
+    handles.reader = bfGetReader([path, filename]);
+    handles.omeMeta = handles.reader.getMetadataStore();
+    nStacks = handles.omeMeta.getImageCount();
+    handles.stackNames = cell(nStacks, 1);
+    try
+        for i = 0:(nStacks-1) % java indices
+            handles.stackNames{i + 1} = char(handles.omeMeta.getImageName(i));
+        end
+    catch
+        % might be no label names present so just use stack numbers instead
+        handles.stackNames = 1:nStacks;
     end
-catch
-    % might be no label names present so just make up stack numbers
-    handles.stackNames = 1:nStacks;
+    
+    % update stackselector values and open first stack
+    set(handles.stackSelector, 'String', handles.stackNames);
+    set(handles.stackSelector, 'Value', 1);
+    set(handles.BGselect, 'Value', 1);
+    set(handles.FGselect, 'Value', 1);
+    guidata(hObject, handles);
+    selectStack(hObject, handles);
 end
-
-% update stackselector values and open first stack
-set(handles.stackSelector, 'String', handles.stackNames);
-set(handles.stackSelector, 'Value', 1);
-set(handles.BGselect, 'Value', 1);
-set(handles.FGselect, 'Value', 1);
-guidata(hObject, handles);
-selectStack(hObject, handles);
 
 
 %% STACK SELECTION ================================================
@@ -189,14 +192,17 @@ if (~stackFail)
         % and bfGetPlane does not...
         timeSinceLast(planeNum) = handles.omeMeta.getPlaneDeltaT(whichStack, planeNum - 1).value();
     end
-    % determine framerate
-    handles.framerate = round(mean(timeSinceLast(2:end)));
+    % determine framerate for videos
+    handles.framerate = round(mean(timeSinceLast(2:end))) / stackSize;
     
     close(progressBar);
     
     % update GUI to use new values
     set(handles.BGselect, 'String', 1:timesThruStack);
     set(handles.FGselect, 'String', 1:timesThruStack);
+    
+    % need this for movies :P
+    handles.timesThruStack = timesThruStack;
     
     guidata(hObject, handles);
     update(hObject, handles);
@@ -498,7 +504,6 @@ function autoscaleSet_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of autoscaleSet
 
-% these values get autocalculated when an image gets displayed
 if handles.mode == 1 % 2D
     [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.999);
 else % 3D         
@@ -515,10 +520,26 @@ guidata(hObject, handles);
 update(hObject, handles);
 
 
-% --- Executes during object creation, after setting all properties.
-function autoscaleSet_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to autoscaleSet (see GCBO)
+% --- Executes on button press in exportVideo.
+function exportVideo_Callback(hObject, eventdata, handles)
+% hObject    handle to exportVideo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+% handles    structure with handles and user data (see GUIDATA)
 
-% don't do anything. Delete this function?
+[output_name,path] = uiputfile('.avi');
+if output_name ~= 0 % did file saving dialog get closed?
+    writer = VideoWriter([path, output_name]);
+    writer.FrameRate = handles.framerate;
+    open(writer);
+    progressBar = waitbar(0, 'Creating video...');
+    % programmatically make plots and export them as images
+    for frameNum = 1:handles.timesThruStack
+        waitbar(frameNum / handles.timesThruStack, progressBar, ...
+            ['Creating frame ', num2str(frameNum), ' of ' num2str(handles.timesThruStack)]);
+        set(handles.FGselect, 'Value', frameNum);
+        update(hObject, handles);
+        writeVideo(writer, getframe(handles.mainAxes));
+    end
+    close(writer);
+    close(progressBar);
+end
