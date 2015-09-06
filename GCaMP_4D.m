@@ -501,12 +501,8 @@ function autoscaleSet_Callback(hObject, eventdata, handles)
 % these values get autocalculated when an image gets displayed
 if handles.mode == 1 % 2D
     [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.999);
-else % 3D
-    if handles.backgroundOn == 1
-        [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.5, 0.9999);
-    else 
-        [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.9, 0.9999);
-    end
+else % 3D         
+    [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.9999);
 end
 
 set(handles.filterMinSet, 'String', handles.filterMin);

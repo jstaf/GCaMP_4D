@@ -4,7 +4,8 @@ function handles = display3D(hObject, handles, dataReduce)
 if handles.backgroundOn
     % field subtraction
     image3d = subtractField(handles.confocalStack(:, :, :, get(handles.FGselect, 'Value')), ...
-        handles.confocalStack(:, :, :, get(handles.BGselect, 'Value')), handles.ver);    
+        handles.confocalStack(:, :, :, get(handles.BGselect, 'Value')), handles.ver);
+    image3d = imgaussfilt3(image3d, 1); % weak gauss filter to smooth things out
 else
     % straight up 3d image
     image3d = handles.confocalStack(:, :, :, get(handles.FGselect, 'Value'));
@@ -64,14 +65,23 @@ caxis([handles.filterMin, handles.filterMax]);
 % intensity in that zone
 alpha('color');
 alphaMapping = alphamap('rampup');
-thresh = 2;
 
-% casting to 32 bit integer removes vals lower than 0 and prevents indexing
-% errors
-alphaMod = uint32((handles.filterMin - thresh) / (handles.filterMin - handles.filterMax) * 64);
+%set a transparency threshold so that you can actually see through
+%transparent bits... depends on subtraction mode
+if ~handles.backgroundOn % standard 3D
+    thresh = 2;
+else % 3D subtraction
+    thresh = 7;
+end
+
+% alphaMod = new alpha minimum (1 thru 64)... where on the scale of 0 thru
+% filtermax is it?
+alphaMod = uint32((handles.filterMin / handles.filterMax) * 64 - thresh);
+
 alphaMapping(thresh:(thresh+alphaMod)) = 0;
 slope = 1/(64 - thresh - double(alphaMod));
 alphaMapping((thresh+alphaMod):64) = 0:slope:1;
+
 % these values always need to be 0 or the image is opaque
 alphaMapping(1:(thresh+2)) = 0;
 
