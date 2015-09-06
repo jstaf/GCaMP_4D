@@ -284,9 +284,9 @@ if (~FGfail && ~BGfail)
     guidata(hObject, handles);
     switch handles.mode
         case 1
-            display2D(hObject, handles);
+            handles = display2D(hObject, handles);
         case 2
-            display3D(hObject, handles, 2);
+            handles = display3D(hObject, handles, 2);
     end
     guidata(hObject, handles);
 end
@@ -303,13 +303,13 @@ figure('Name', 'Display copy');
 switch handles.mode
     case 1
         try
-            display2D(hObject, handles)
+            handles = display2D(hObject, handles)
         catch
             % dont do anything... works as intended even though its throwing an
             % error here.
         end
     case 2
-        display3D(hObject, handles, 2); 
+        handles = display3D(hObject, handles, 2); 
 end
 
 
@@ -434,6 +434,8 @@ else
         handles.filterMin = str2double(get(hObject,'String'));
         guidata(hObject, handles);
         update(hObject, handles);
+    else
+        disp('Invalid value. Plot minimum must be less than maximum.');
     end
 end
 
@@ -467,6 +469,8 @@ else
         handles.filterMax = str2double(get(hObject,'String'));
         guidata(hObject, handles);
         update(hObject, handles);
+    else
+        disp('Invalid value. Plot minimum must be less than maximum.');
     end
 end
 
@@ -493,7 +497,24 @@ function autoscaleSet_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of autoscaleSet
-handles.autoscaleOn = get(hObject,'Value');
+
+% these values get autocalculated when an image gets displayed
+if handles.mode == 1 % 2D
+    [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.999);
+else % 3D
+    if handles.backgroundOn == 1
+        [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.5, 0.9999);
+    else 
+        [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.9, 0.9999);
+    end
+end
+
+set(handles.filterMinSet, 'String', handles.filterMin);
+set(handles.filterMaxSet, 'String', handles.filterMax);
+set(handles.filterMinSet, 'Value', handles.filterMin);
+set(handles.filterMaxSet, 'Value', handles.filterMax);
+
+% update display
 guidata(hObject, handles);
 update(hObject, handles);
 
@@ -503,5 +524,5 @@ function autoscaleSet_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to autoscaleSet (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-handles.autoscaleOn = get(hObject,'Value');
-guidata(hObject, handles);
+
+% don't do anything. Delete this function?

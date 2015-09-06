@@ -1,4 +1,4 @@
-function display3D(hObject, handles, dataReduce)
+function handles = display3D(hObject, handles, dataReduce)
 % Display 3D image for plotting
 
 if handles.backgroundOn
@@ -58,7 +58,7 @@ set(gca, 'Ydir', 'reverse'); % y axis is always fucking reversed
 colormap('jet');
 colorBAR = colorbar('EastOutside');
 colorBAR.Label.String = 'Raw fluorsecence value';
-clim = caxis();
+caxis([handles.filterMin, handles.filterMax]);
 
 % set colors and transparency of the plot to be equal to the image
 % intensity in that zone
@@ -66,11 +66,9 @@ alpha('color');
 alphaMapping = alphamap('rampup');
 thresh = 2;
 
-autoscale(hObject, handles, alloc, 0.9, 0.9999);
-
 % casting to 32 bit integer removes vals lower than 0 and prevents indexing
 % errors
-alphaMod = uint32((handles.filterMin - thresh) / (clim(2) - clim(1)) * 64);
+alphaMod = uint32((handles.filterMin - thresh) / (handles.filterMin - handles.filterMax) * 64);
 alphaMapping(thresh:(thresh+alphaMod)) = 0;
 slope = 1/(64 - thresh - double(alphaMod));
 alphaMapping((thresh+alphaMod):64) = 0:slope:1;
@@ -88,4 +86,9 @@ voxelSizes(3) = voxelSizes(3) / 2;
 daspect(1 ./ voxelSizes);
 
 view(handles.X_Angle, handles.Y_Angle);
+
+% update handles with display image for autoscaling
+handles.displayImage = alloc;
+guidata(hObject, handles);
+
 return;

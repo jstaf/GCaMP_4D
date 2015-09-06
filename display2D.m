@@ -1,4 +1,4 @@
-function display2D(hObject, handles)
+function handles = display2D(hObject, handles)
 % displays the data in flat form
 
 FG = handles.confocalStack(:, :, :, get(handles.FGselect, 'Value'));
@@ -18,7 +18,6 @@ else
     image = max(FG, [], 3);
 end
 
-autoscale(hObject, handles, image, 0.01, 0.999);
 imshow(image, [handles.filterMin, handles.filterMax]);
 
 % create colorbar and its limits
@@ -33,4 +32,9 @@ else
     colorBAR.Label.String = 'Raw fluorsecence value';
 end
 drawnow;
+
+% update handles with the display image for the autoscale function
+handles.displayImage = image;
+guidata(hObject, handles);
+
 return;
