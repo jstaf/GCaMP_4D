@@ -1,0 +1,124 @@
+<deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
+  <configuration file="/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D.prj" location="/home/jeff/Documents/MATLAB/GCaMP_4D" name="GCaMP_4D" target="target.ezdeploy.standalone" target-name="Application Compiler">
+    <param.appname>GCaMP_4D</param.appname>
+    <param.icon />
+    <param.icons />
+    <param.version>1.0</param.version>
+    <param.authnamewatermark>Jeff Stafford</param.authnamewatermark>
+    <param.email>stafford@zoology.ubc.ca</param.email>
+    <param.company>University of British Columbia</param.company>
+    <param.summary>A tool to open and analyze 4-dimensional microscopy data.</param.summary>
+    <param.description>This tool can open and display any image format supported by the BioFormats reader (http://www.openmicroscopy.org/site/products/bio-formats). Images can be viewed in 2D, 3D, or 2D/3D with field subtraction. If you encounter any issues with this application or would like to see a feature added, either email me or add an issue to the tracker at https://github.com/kazi11/GCaMP_4D .</param.description>
+    <param.screenshot />
+    <param.guid />
+    <param.net.saved.interface />
+    <param.installpath.string>/GCaMP_4D/</param.installpath.string>
+    <param.installpath.combo>option.installpath.user</param.installpath.combo>
+    <param.logo />
+    <param.install.notes>This tool can open and display any image format supported by the BioFormats reader (http://www.openmicroscopy.org/site/products/bio-formats). Images can be viewed in 2D, 3D, or 2D/3D with field subtraction. If you encounter any issues with this application or would like to see a feature added, either email me or add an issue to the tracker at https://github.com/kazi11/GCaMP_4D .</param.install.notes>
+    <param.intermediate>${PROJECT_ROOT}/GCaMP_4D/for_testing</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}/GCaMP_4D/for_redistribution_files_only</param.files.only>
+    <param.output>${PROJECT_ROOT}/GCaMP_4D/for_redistribution</param.output>
+    <param.enable.clean.build>false</param.enable.clean.build>
+    <param.user.defined.mcr.options />
+    <param.embed.ctf>true</param.embed.ctf>
+    <param.target.type>subtarget.standalone</param.target.type>
+    <param.support.packages />
+    <param.required.mcr.products>
+      <item>35000</item>
+      <item>35010</item>
+      <item>35001</item>
+    </param.required.mcr.products>
+    <param.web.mcr>true</param.web.mcr>
+    <param.package.mcr>false</param.package.mcr>
+    <param.no.mcr>false</param.no.mcr>
+    <param.web.mcr.name>GCaMP_4D_web</param.web.mcr.name>
+    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
+    <param.windows.command.prompt>false</param.windows.command.prompt>
+    <param.create.log>true</param.create.log>
+    <param.log.file>GCaMP_4D.log</param.log.file>
+    <unset>
+      <param.icon />
+      <param.icons />
+      <param.version />
+      <param.screenshot />
+      <param.guid />
+      <param.net.saved.interface />
+      <param.installpath.combo />
+      <param.logo />
+      <param.intermediate />
+      <param.files.only />
+      <param.output />
+      <param.enable.clean.build />
+      <param.user.defined.mcr.options />
+      <param.embed.ctf />
+      <param.target.type />
+      <param.support.packages />
+      <param.web.mcr />
+      <param.package.mcr />
+      <param.no.mcr />
+      <param.package.mcr.name />
+      <param.no.mcr.name />
+      <param.windows.command.prompt />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}/GCaMP_4D.m</file>
+    </fileset.main>
+    <fileset.resources>
+      <file>${PROJECT_ROOT}/GCaMP_4D.fig</file>
+      <file>${PROJECT_ROOT}/autoscale.m</file>
+      <file>${PROJECT_ROOT}/bfmatlab</file>
+      <file>${PROJECT_ROOT}/display2D.m</file>
+      <file>${PROJECT_ROOT}/display3D.m</file>
+      <file>${PROJECT_ROOT}/stabilizePair.m</file>
+      <file>${PROJECT_ROOT}/subtractField.m</file>
+    </fileset.resources>
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}/GCaMP_4D/for_testing" name="splash.png" optional="false">/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D/for_testing/splash.png</file>
+      <file location="${PROJECT_ROOT}/GCaMP_4D/for_testing" name="run_GCaMP_4D.sh" optional="false">/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D/for_testing/run_GCaMP_4D.sh</file>
+      <file location="${PROJECT_ROOT}/GCaMP_4D/for_testing" name="GCaMP_4D" optional="false">/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D/for_testing/GCaMP_4D</file>
+      <file location="${PROJECT_ROOT}/GCaMP_4D/for_testing" name="readme.txt" optional="true">/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D/for_testing/readme.txt</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>/usr/local/MATLAB/R2015a-UBC</root>
+      <toolboxes>
+        <toolbox name="fixedpoint" />
+        <toolbox name="embeddedcoder" />
+        <toolbox name="matlabcoder" />
+      </toolboxes>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <embeddedcoder>
+          <enabled>true</enabled>
+        </embeddedcoder>
+      </toolbox>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>true</unix>
+      <mac>false</mac>
+      <windows>false</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>true</linux>
+      <solaris>false</solaris>
+      <osver>3.19.0-26-generic</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>glnxa64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
