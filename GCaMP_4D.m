@@ -8,22 +8,10 @@ function varargout = GCaMP_4D(varargin)
 %
 %      H = GCAMP_4D returns the handle to a new GCAMP_4D or the handle to
 %      the existing singleton*.
-%
-%      GCAMP_4D('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in GCAMP_4D.M with the given input arguments.
-%
-%      GCAMP_4D('Property','Value',...) creates a new GCAMP_4D or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before GCaMP_4D_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to GCaMP_4D_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Edit the above text to modify the response to help GCaMP_4D
+%      
+%      Running this function will start the GCaMP_4D GUI program. This
+%      software has only been tested with Leica .lif files, but *should*
+%      work with any imaging format that can be opened by BioFormats.
 
 % Last Modified by GUIDE v2.5 06-Sep-2015 14:06:00
 
@@ -506,8 +494,12 @@ function autoscaleSet_Callback(hObject, eventdata, handles)
 
 if handles.mode == 1 % 2D
     [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.999);
-else % 3D         
-    [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.9999);
+else % 3D
+    if handles.backgroundOn == 0 % plain display
+        [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.1, 0.9999);
+    else % subtraction
+        [handles.filterMin, handles.filterMax] = autoscale(handles.displayImage, 0.95, 0.9999);
+    end
 end
 
 set(handles.filterMinSet, 'String', handles.filterMin);
@@ -528,18 +520,29 @@ function exportVideo_Callback(hObject, eventdata, handles)
 
 [output_name,path] = uiputfile('.avi');
 if output_name ~= 0 % did file saving dialog get closed?
-    writer = VideoWriter([path, output_name]);
-    writer.FrameRate = handles.framerate;
-    open(writer);
-    %progressBar = waitbar(0, 'Creating video...');
-    % programmatically make plots and export them as images
-    for frameNum = 1:handles.timesThruStack
-     %   waitbar(frameNum / handles.timesThruStack, progressBar, ...
-      %      ['Creating frame ', num2str(frameNum), ' of ' num2str(handles.timesThruStack)]);
-        set(handles.FGselect, 'Value', frameNum);
-        update(hObject, handles);
-        writeVideo(writer, getframe(handles.mainAxes));
+    try 
+        if handles.mode == 1
+            fig = figure(); 
+        else
+            fig = figure('Position', [100, 100, 800, 500]);
+        end
+        writer = VideoWriter([path, output_name]);
+        writer.FrameRate = handles.framerate;
+        open(writer);
+        % programmatically make plots and export them as images
+        for frameNum = 1:handles.timesThruStack
+            set(handles.FGselect, 'Value', frameNum);
+            update(hObject, handles);
+            writeVideo(writer, getframe(fig));
+        end
+        close(writer);
+        close(fig);
+    catch % close resources if something went wrong
+        if exist('fig', 'var') ~= 0
+            close(fig);
+        end
+        if exist('writer', 'var') ~= 0
+            close(writer);
+        end
     end
-    close(writer);
-    %close(progressBar);
 end
