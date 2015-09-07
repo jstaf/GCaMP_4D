@@ -142,10 +142,11 @@ if (~stackFail)
         handles.omeMeta.getPixelsSizeX(whichStack).getNumberValue().doubleValue()];
     % Z = size of stack
     stackSize = handles.omeMeta.getPixelsSizeZ(whichStack).getNumberValue().doubleValue();
-    % T = number of times we went through the stack / action repeated
+    % T = number of times we went through the stack (action repeated)
     timesThruStack = handles.omeMeta.getPixelsSizeT(whichStack).getNumberValue().doubleValue();
-    % N = total number of planes in our stack
-    totalPlanes = handles.omeMeta.getPlaneCount(whichStack);
+    % N = total number of planes in our stack / number of channels
+    totalPlanes = handles.omeMeta.getPlaneCount(whichStack) / ... 
+        handles.omeMeta.getPixelsSizeC(whichStack).getNumberValue().doubleValue();
     
     % [x, y, z] = retrieve absolute voxel sizes in uM
     handles.voxelSizes = [ ...
@@ -168,13 +169,15 @@ if (~stackFail)
             ['Opening plane ', num2str(planeNum), ' of ', num2str(totalPlanes)]);
         
         % which image our we at in a single pass?
-        stackNum = mod(planeNum, stackSize) + 1;
+        Zn = mod(planeNum, stackSize) + 1;
         
         % what pass through our sample are we at?
-        passNum = ceil(planeNum / stackSize);
+        Tn = ceil(planeNum / stackSize);
+        
+        idx = handles.reader.getIndex(Zn - 1, 0, Tn - 1) + 1; 
         
         % individually grab plane and put it where its supposed to go
-        handles.confocalStack(:, :, stackNum, passNum) = bfGetPlane(handles.reader, planeNum);
+        handles.confocalStack(:, :, Zn, Tn) = bfGetPlane(handles.reader, idx);
         
         % get time since last frame... weird how this one uses java indices
         % and bfGetPlane does not...
