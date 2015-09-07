@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration file="/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D.prj" location="/home/jeff/Documents/MATLAB/GCaMP_4D" name="GCaMP_4D" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="863525496" file="/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D.prj" location="/home/jeff/Documents/MATLAB/GCaMP_4D" name="GCaMP_4D" preferred-package-location="/home/jeff/Documents/MATLAB/GCaMP_4D/GCaMP_4D/for_redistribution" preferred-package-type="package.type.install" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>GCaMP_4D</param.appname>
     <param.icon />
     <param.icons />
