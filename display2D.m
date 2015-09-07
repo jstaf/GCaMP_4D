@@ -6,7 +6,15 @@ if (handles.backgroundOn)
     % new subtraction code
     BG = handles.confocalStack(:, :, :, get(handles.BGselect,'Value'));
     FG = subtractField(FG, BG, handles.ver);
-    image = max(FG, [], 3);
+    [image] = max(FG, [], 3);
+    [imageMin] = min(FG, [], 3);
+    
+    for p = 1:numel(image)
+        if image(p) < abs(imageMin(p))
+            image(p) = imageMin(p);
+        end
+    end
+    
     % have to filter again or it looks very meh
     if handles.ver < 8.5
         gauss = fspecial('gaussian', 3, 1);
