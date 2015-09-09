@@ -1,19 +1,25 @@
 # GCaMP_4D
 An algorithm to parse and analyze 4-dimensional microscopy data
 
-![Imgur](http://i.imgur.com/aVy7xWW.png)
+![Imgur](http://i.imgur.com/exyLUPW.gifv)
 
-A pair of neuronal projections fluorescing in response to a stimuli in a 3D viewfield.
+A pair of neuronal projections fluorescing in response to a stimuli in a 3D viewfield. (Sorry for the potato quality .gifs, but they're the only way GitHub will let me show a video.)
 
 ## How it works
 
-The expected input is a confocal file containing a series of passes through a specimen. The stack is opened using [BioFormats](https://www.openmicroscopy.org/site/support/bio-formats5.1/about/index.html). Using metadata included in the file, the stack is formatted into a series of 3D images, each representing one "pass" through the specimen. Each pass is then "flattened" to a single maximum projection (each pixel is the vertical maximum of all the pixels at that position in the stack) and then denoised using a gaussian filter. 
+The expected input is a confocal file containing a series of passes through a specimen. The stack is opened using [BioFormats](https://www.openmicroscopy.org/site/support/bio-formats5.1/about/index.html). Using metadata included in the file, the stack is formatted into a series of 3D images, each representing one "pass" through the specimen. Passes can be viewed in either 2D or 3D. When viewing in 2D, each pass is "flattened" to a single maximum projection (each pixel is the vertical maximum of all the pixels at that position in the stack).
 
-When a foreground and background pass are compared, the images are first "stabilized" using [the SURF/MSAC algorithms](http://www.mathworks.com/help/vision/examples/video-stabilization-using-point-feature-matching.html). This ensures that the features in each pass actually line up, even though the specimen may have moved. Once stabilization is complete, the difference between the images is computed and displayed back to the user. The formula for image subtraction is as follows: 
+Importantly, this algorithm is able to perform 3D field subtraction. An entire 3D foreground pass can be compared to a 3D background pass. To make this possible, every image in each Z-stack/pass are first "stabilized" using [the SURF/MSAC algorithms](http://www.mathworks.com/help/vision/examples/video-stabilization-using-point-feature-matching.html). This ensures that the features in each pass actually line up, even though the specimen may have shaken or moved during imaging. Once stabilization is complete, the difference between the images is computed and displayed back to the user after gaussian denoising. This 3D field subtraction algorithm is applied regardless of whether or not you are viewing a sample in 2D or 3D. The formula for image subtraction is as follows (and occurs on a per-pixel basis): 
 
 ```{MATLAB} 
 (foreground - background) ./ background * 100
 ```
+
+**2D subtraction**
+![](http://i.imgur.com/YRFScQS.gifv)
+
+**3D subtraction**
+![](http://i.imgur.com/ClR0ubh.gifv)
 
 ## Installation
 
@@ -31,7 +37,7 @@ The display should automatically update as you change the `Foreground Pass` or `
 
 If you want to view an individual pass, uncheck the box next to the background pass. Only the foreground pass will be displayed. You can toggle between modes with that checkbox.
 
-![Imgur](http://i.imgur.com/ZoiiUio.png)
+![](http://i.imgur.com/ZoiiUio.png)
 
 Raw, unfiltered "single-pass" fluorescence.
 
