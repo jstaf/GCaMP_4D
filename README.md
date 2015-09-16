@@ -36,11 +36,13 @@ If you don't have MATLAB, you can get standalone versions of this software [here
 To analyze a new piece of data
 + Open a file with the `Open file` button.
 + Select a stack to analyze in the drop down box
-+ Select a viewing mode
-+ Select a foreground pass
++ Select a viewing mode:
+  + 2D Max Projection (my personal favorite) - Displays a max projection of the 3D field.
+  + 2D Slice - Displays an individual image from a 3D pass. You can change which slice you are viewing with the vertical slider. The slice currently being viewed is displayed at the top.
+  + 3D Field - Displays the entire 3D field on the screen. Every individual slice is visible, and brighter areas in the image are more opaque and colored differently. You can rotate the 3D display using the sliders next to the display.
++ Select a foreground pass to view
 + Select a background pass if you want to perform image subtraction. If you turn the background pass on with the checkbox, subtraction will be performed.
 + The colorspace settings control how fluorescence/changes in fluorescence are displayed. You can change the axes limits here, and in 3D mode, this will control the transparency of 3D objects, allowing you to filter out and see through dimmer objects. You can automatically set these values using the "Autoscale" button.
-+ You can rotate the 3D display using the sliders next to the display (does nothing in 2D mode).
 + You can export an image using the "Export Display" button.
 + You can export a video using the "Export Video" button. The program will then create a video  with one frame for every pass through the specimen (framerate is time it took to image each pass, determined using metadata in the file). If subtraction is turned on, all passes will be compared to the background you have selected. The colorspace settings will remain the same throughout the video.
 
