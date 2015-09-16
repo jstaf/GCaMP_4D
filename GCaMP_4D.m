@@ -283,6 +283,8 @@ if (~FGfail && ~BGfail)
         case 1
             handles = display2D(hObject, handles);
         case 2
+            handles = display2D(hObject, handles);
+        case 3
             handles = display3D(hObject, handles, 2);
     end
     guidata(hObject, handles);
@@ -299,13 +301,10 @@ function exportDisplay_Callback(hObject, eventdata, handles)
 figure('Name', 'Display copy');
 switch handles.mode
     case 1
-        try
-            handles = display2D(hObject, handles)
-        catch
-            % dont do anything... works as intended even though its throwing an
-            % error here.
-        end
+        handles = display2D(hObject, handles);
     case 2
+        handles = display2D(hObject, handles);
+    case 3
         handles = display3D(hObject, handles, 2); 
 end
 
@@ -341,8 +340,12 @@ function Y_Angle_Slider_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 handles.Y_Angle = get(hObject,'Value');
-if (handles.mode == 2) 
+if (handles.mode == 3) 
     view(handles.X_Angle, handles.Y_Angle);
+end
+guidata(hObject, handles);
+if (handles.mode == 2)
+    handles = display2D(hObject, handles);
 end
 guidata(hObject, handles);
 
@@ -369,7 +372,7 @@ function X_Angle_Slider_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 handles.X_Angle = get(hObject,'Value');
-if (handles.mode == 2) 
+if (handles.mode == 3) 
     view(handles.X_Angle, handles.Y_Angle);
 end
 guidata(hObject, handles);
