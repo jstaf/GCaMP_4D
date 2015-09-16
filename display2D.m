@@ -25,14 +25,14 @@ if handles.mode == 1
     end
 else
     % per slice view
-    slice = ceil((handles.Y_Angle + 90) / 180 * size(FG, 3));
+    FGdepth = size(FG, 3);
+    slice = ceil((handles.Y_Angle + 90) / 180 * FGdepth);
     if (slice < 1) % only if slider goes to 0
         slice = 1; 
     end
     image = FG(:, :, slice);
-    image = insertText(image, [10, 10], ...
-        [num2str(slice), ' / ', num2str(size(FG, 3))], ...
-        'BoxColor', [255,255,255]);
+    set(handles.whichSliceText, 'Visible', 'on');
+    set(handles.whichSliceText, 'String', ['Slice: ', num2str(slice), ' / ', num2str(FGdepth)]);
 end
 
 if handles.backgroundOn

@@ -141,12 +141,12 @@ if (~stackFail)
     resolution = [handles.omeMeta.getPixelsSizeY(whichStack).getNumberValue().doubleValue(), ...
         handles.omeMeta.getPixelsSizeX(whichStack).getNumberValue().doubleValue()];
     % Z = size of stack
-    stackSize = handles.omeMeta.getPixelsSizeZ(whichStack).getNumberValue().doubleValue();
+    sizeZ = handles.omeMeta.getPixelsSizeZ(whichStack).getNumberValue().doubleValue();
     % T = number of times we went through the stack (action repeated)
-    timesThruStack = handles.omeMeta.getPixelsSizeT(whichStack).getNumberValue().doubleValue();
+    sizeT = handles.omeMeta.getPixelsSizeT(whichStack).getNumberValue().doubleValue();
     % N = total number of planes in our stack / number of channels
     totalPlanes = handles.omeMeta.getPlaneCount(whichStack) / ... 
-        handles.omeMeta.getPixelsSizeC(whichStack).getNumberValue().doubleValue();
+        handles.omeMeta.getPixelsSizeC(whichStack).getNumberValue().doubleValue();    
     
     % [x, y, z] = retrieve absolute voxel sizes in uM
     handles.voxelSizes = [ ...
@@ -156,7 +156,7 @@ if (~stackFail)
     
     %% open file
     % preallocate memory to make things faster
-    handles.confocalStack = zeros(resolution(1), resolution(2), stackSize, timesThruStack, 'uint8');
+    handles.confocalStack = zeros(resolution(1), resolution(2), sizeZ, sizeT, 'uint8');
     timeSinceLast = zeros(totalPlanes, 1);
     
     % needs to be set or we open the first series every time
@@ -164,36 +164,40 @@ if (~stackFail)
     
     progressBar = waitbar(0, 'Opening stack...');
     % fill in confocalStack with our data
-    for planeNum = 1:totalPlanes
-        waitbar(planeNum / totalPlanes, progressBar, ...
-            ['Opening plane ', num2str(planeNum), ' of ', num2str(totalPlanes)]);
+    for plane = 1:totalPlanes
+        waitbar(plane / totalPlanes, progressBar, ...
+            ['Opening plane ', num2str(plane), ' of ', num2str(totalPlanes)]);
         
         % which image our we at in a single pass?
-        Zn = mod(planeNum, stackSize) + 1;
+        Zn = mod(plane, sizeZ) + 1;
         
         % what pass through our sample are we at?
-        Tn = ceil(planeNum / stackSize);
+        Tn = ceil(plane / sizeZ);
         
         idx = handles.reader.getIndex(Zn - 1, 0, Tn - 1) + 1; 
         
         % individually grab plane and put it where its supposed to go
-        handles.confocalStack(:, :, Zn, Tn) = bfGetPlane(handles.reader, idx);
+        handles.confocalStack(:, :, sizeZ + 1 - Zn, Tn) = ... 
+            bfGetPlane(handles.reader, idx);
         
         % get time since last frame... weird how this one uses java indices
         % and bfGetPlane does not...
-        timeSinceLast(planeNum) = handles.omeMeta.getPlaneDeltaT(whichStack, planeNum - 1).value();
+        timeSinceLast(plane) = handles.omeMeta.getPlaneDeltaT(whichStack, plane - 1).value();
     end
     % determine framerate for videos
-    handles.framerate = round(mean(timeSinceLast(2:end))) / stackSize;
+    handles.framerate = round(mean(timeSinceLast(2:end))) / sizeZ;
     
     close(progressBar);
     
     % update GUI to use new values
-    set(handles.BGselect, 'String', 1:timesThruStack);
-    set(handles.FGselect, 'String', 1:timesThruStack);
+    set(handles.BGselect, 'String', 1:sizeT);
+    set(handles.FGselect, 'String', 1:sizeT);
     
     % need this for movies :P
-    handles.timesThruStack = timesThruStack;
+    handles.timesThruStack = sizeT;
+    
+    % set the y angle snap to control the number of slices
+    handles.Y_Angle_Slider.SliderStep = [1 / sizeZ, 1 / sizeZ];
     
     guidata(hObject, handles);
     update(hObject, handles);
@@ -278,6 +282,7 @@ BGfail = strcmp(defaults, contents{BGval});
 
 if (~FGfail && ~BGfail)
     % update and display data
+    set(handles.whichSliceText, 'Visible', 'off');
     guidata(hObject, handles);
     switch handles.mode
         case 1

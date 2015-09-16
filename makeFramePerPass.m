@@ -2,7 +2,7 @@ function makeFramePerPass(videoName, image3d)
 
 % we need to do this before making a video
 writer = VideoWriter(videoName);
-writer.FrameRate = 1;
+writer.FrameRate = 15;
 open(writer);
 waitDialog = waitbar(0, 'Creating video...');
 timesThruStack = size(image3d, 3);
