@@ -290,7 +290,8 @@ if (~FGfail && ~BGfail)
         case 2
             handles = display2D(hObject, handles);
         case 3
-            handles = display3D(hObject, handles, 2);
+            reduce = ceil(max(size(handles.confocalStack)) / 256);
+            handles = display3D(hObject, handles, reduce);
     end
     guidata(hObject, handles);
 end
@@ -310,7 +311,8 @@ switch handles.mode
     case 2
         handles = display2D(hObject, handles);
     case 3
-        handles = display3D(hObject, handles, 2); 
+        reduce = ceil(max(size(handles.confocalStack)) / 250);
+        handles = display3D(hObject, handles, reduce); 
 end
 
 
