@@ -311,7 +311,7 @@ switch handles.mode
     case 2
         handles = display2D(hObject, handles);
     case 3
-        reduce = ceil(max(size(handles.confocalStack)) / 250);
+        reduce = ceil(max(size(handles.confocalStack)) / 256);
         handles = display3D(hObject, handles, reduce); 
 end
 
