@@ -89,8 +89,8 @@ alphaMapping(alphaMapping > 1) = 1;
 alphaMapping(alphaMapping < 0) = 0;
 alphamap(alphaMapping);
 
-% not sure if i believe the metadata
-voxelSizes(3) = voxelSizes(3) / 2;
+% add option for z scaling
+voxelSizes(3) = voxelSizes(3) * handles.ZScale;
 
 % set aspect ratio to metadata's voxel aspect ratio
 daspect(1 ./ voxelSizes);

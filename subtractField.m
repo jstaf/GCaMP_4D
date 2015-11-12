@@ -5,9 +5,16 @@ function [deltaField] = subtractField(FGfield, BGfield, ver)
 progressBar = waitbar(0, 'Aligning and subtracting image passes');
 depth = size(FGfield, 3);
 for i = 1:depth
-    BGfield(:, :, i) = stabilizePair(FGfield(:, :, i), BGfield(:, :, i));
+    [BGfield(:, :, i), success] = stabilizePair(FGfield(:, :, i), BGfield(:, :, i));
     waitbar(i/(depth + 1), progressBar);
+    
+%     % debugging
+%     if ~success
+%         fprintf([num2str(i), '.']);
+%     end
 end
+% debugging
+fprintf('\n')
 
 % gaussfilter
 if ver < 8.5

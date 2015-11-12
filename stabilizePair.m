@@ -1,14 +1,15 @@
-function [image2warp] = stabilizePair(image1, image2)
+function [image2warp, success] = stabilizePair(image1, image2)
 
 % lets take a crack at stabilizing the image...
 
 % note: I claim no authorship of this function, as I am just copying the
 % MATLAB tutorial at http://www.mathworks.com/help/vision/examples/video-stabilization-using-point-feature-matching.html
 
-% went with SURF features because it gave the most points on my test images
-image1c = image1 * 3;
-image2c = image2 * 3;
+const = 4;
+image1c = image1 * const;
+image2c = image2 * const;
 
+% went with SURF features because it gave the most points on my test images
 corners1 = detectSURFFeatures(image1c);
 corners2 = detectSURFFeatures(image2c);
 
@@ -22,8 +23,9 @@ points2 = points2(pairs(:, 2), :);
 if (size(pairs, 1) > 5)
     [transform] = estimateGeometricTransform(points2, points1, 'affine');
     image2warp = imwarp(image2, transform, 'OutputView', imref2d(size(image2)));
+    success = 1;
 else
-    %disp('Could not align image.');
+    success = 0;
     image2warp = image2;
 end
 

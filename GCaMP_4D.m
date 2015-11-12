@@ -13,7 +13,7 @@ function varargout = GCaMP_4D(varargin)
 %      software has only been tested with Leica .lif files, but *should*
 %      work with any imaging format that can be opened by BioFormats.
 
-% Last Modified by GUIDE v2.5 06-Sep-2015 14:06:00
+% Last Modified by GUIDE v2.5 12-Nov-2015 12:39:07
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -177,9 +177,11 @@ if (~stackFail)
         idx = handles.reader.getIndex(Zn - 1, 0, Tn - 1) + 1; 
         
         % individually grab plane and put it where its supposed to go
-        handles.confocalStack(:, :, sizeZ + 1 - Zn, Tn) = ... 
-            bfGetPlane(handles.reader, idx);
-        
+        if handles.flip
+            handles.confocalStack(:, :, Zn, Tn) = bfGetPlane(handles.reader, idx);
+        else
+            handles.confocalStack(:, :, sizeZ + 1 - Zn, Tn) = bfGetPlane(handles.reader, idx);
+        end
         % get time since last frame... weird how this one uses java indices
         % and bfGetPlane does not...
         timeSinceLast(plane) = handles.omeMeta.getPlaneDeltaT(whichStack, plane - 1).value();
@@ -559,3 +561,50 @@ if output_name ~= 0 % did file saving dialog get closed?
         end
     end
 end
+
+function ZScaleSet_Callback(hObject, eventdata, handles)
+% hObject    handle to ZScaleSet (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ZScaleSet as text
+%        str2double(get(hObject,'String')) returns contents of ZScaleSet as a double
+if ~isnan(str2double(get(hObject, 'String')))
+    handles.ZScale = str2double(get(hObject, 'String'));
+    guidata(hObject, handles);
+    update(hObject, handles);
+end
+
+% --- Executes during object creation, after setting all properties.
+function ZScaleSet_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ZScaleSet (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.ZScale = str2double(get(hObject, 'String'));
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function FlipBox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to FlipBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+handles.flip = get(hObject, 'Value');
+guidata(hObject, handles);
+
+% --- Executes on button press in FlipBox.
+function FlipBox_Callback(hObject, eventdata, handles)
+% hObject    handle to FlipBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of FlipBox
+handles.flip = get(hObject, 'Value');
+guidata(hObject, handles);
+selectStack(handles.stackSelector, handles);
